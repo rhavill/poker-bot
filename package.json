@@ -1,0 +1,9 @@
+{
+    "name": "poker-bot"
+  , "version": "0.0.1"
+  , "private": true
+  , "dependencies": {
+      "express": "3.x",
+      "node-xml-lite": ">=0.0.3"
+  }
+}
