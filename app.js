@@ -54,9 +54,9 @@ app.post('/poker-bot', function(req, res){
 			strategy = new MambaStrategy(me, players, hand, betting, actionsAllowed);
 			break;
 		default:
-			strategy = new Strategy(me, players, hand, betting, actionsAllowed);		
+			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
+			strategy.rankHand();	
 	}
-	console.log(hand);
 	res.send(strategy.playHand());
 });
 
@@ -107,9 +107,11 @@ Strategy.prototype.FULL_HOUSE = 7;
 Strategy.prototype.QUADS = 8;
 Strategy.prototype.STRAIGHT_FLUSH = 9;
 Strategy.prototype.rankHand = function() {
-	var rank = this.GARBAGE;
-	return rank;
-}
+	var rank = this.QUADS;
+	var ranks = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+	this.hand.sort(function (a,b) { return ranks.indexOf(a.rank) - ranks.indexOf(b.rank); });
+	console.log(rank);
+};
 Strategy.prototype.playHand = function() {	
 	var action = 'fold';
 	if (this.actionsAllowed.indexOf('check') > -1) {
@@ -138,16 +140,16 @@ MambaStrategy.prototype.playHand = function() {
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
 
-function unionArrays (x, y) {
-  var obj = {};
-  for (var i = x.length-1; i >= 0; -- i)
-     obj[x[i]] = x[i];
-  for (var i = y.length-1; i >= 0; -- i)
-     obj[y[i]] = y[i];
-  var res = []
-  for (var k in obj) {
-    if (obj.hasOwnProperty(k))  // <-- optional
-      res.push(obj[k]);
-  }
-  return res;
-}
+// function unionArrays (x, y) {
+//   var obj = {};
+//   for (var i = x.length-1; i >= 0; -- i)
+//      obj[x[i]] = x[i];
+//   for (var i = y.length-1; i >= 0; -- i)
+//      obj[y[i]] = y[i];
+//   var res = []
+//   for (var k in obj) {
+//     if (obj.hasOwnProperty(k))  // <-- optional
+//       res.push(obj[k]);
+//   }
+//   return res;
+// }
