@@ -6,17 +6,17 @@ app.post('/poker-bot', function(req, res){
 	var playerName = req.param('name');
 	// possible actions: raise, bet, fold, call, check and allin
 	var actionsAllowed = req.param('actions').split("\n");
+	var hand = [];
 	var pocketCardsText = req.param('pocket').split(' ');
-	var pocketCard1 = new Card(pocketCardsText[0]);
-	var pocketCard2 = new Card(pocketCardsText[1]);
-	var pocket = new Pocket([pocketCard1, pocketCard2]);
+	hand.push(new Card(pocketCardsText[0]));
+	hand.push(new Card(pocketCardsText[1]));
   	var gameState = req.param('state');
 	var stateObject = xml.parseString(gameState);
 	var players = [];
 	var me = null, strategy = null;
 	var betting = [];
 	var objects = {};
-	var communityCards = [];
+
 	for (var i=0; i < stateObject.childs.length; i++) {
 		objects[stateObject.childs[i].name] = stateObject.childs[i];
 	}
@@ -46,17 +46,17 @@ app.post('/poker-bot', function(req, res){
 	if (objects['community'].childs) {
 		for (var i=0; i < objects['community'].childs.length; i++) {
 			var child = objects.community.childs[i];
-			communityCards.push(new Card(child.attrib.rank + child.attrib.suit));
+			hand.push(new Card(child.attrib.rank + child.attrib.suit));
 		}
 	}
-	var community = new Community(communityCards);
 	switch (playerName) {
 		case 'MsMamba':
-			strategy = new MambaStrategy(me, players, pocket, community, betting, actionsAllowed);
+			strategy = new MambaStrategy(me, players, hand, betting, actionsAllowed);
 			break;
 		default:
-			strategy = new Strategy(me, players, pocket, community, betting, actionsAllowed);		
+			strategy = new Strategy(me, players, hand, betting, actionsAllowed);		
 	}
+	console.log(hand);
 	res.send(strategy.playHand());
 });
 
@@ -79,14 +79,7 @@ function Card(text) {
 	this.suit = parts[1];
 }
 
-function Pocket(cards) {
-	this.cards = cards;
-}
-Pocket.prototype.isPocketPair = function() {
-	return this.cards[0].rank == this.cards[1].rank;
-}
-
-function Community(cards) {
+function Hand(cards) {
 	this.cards = cards;
 }
 
@@ -96,15 +89,28 @@ function Bet(player, type, amount) {
 	this.amount = amount;
 }
 
-function Strategy(me, players, pocket, community, betting, actionsAllowed) {
+function Strategy(me, players, hand, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
-	this.pocket = pocket;
-	this.community = community;
+	this.hand = hand;
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
 }
-Strategy.prototype.playHand = function() {
+Strategy.prototype.GARBAGE = 0;
+Strategy.prototype.ACE_HIGH = 1;
+Strategy.prototype.PAIR = 2;
+Strategy.prototype.TWO_PAIR = 3;
+Strategy.prototype.TRIPS = 4;
+Strategy.prototype.STRAIGHT = 5;
+Strategy.prototype.FLUSH = 6;
+Strategy.prototype.FULL_HOUSE = 7;
+Strategy.prototype.QUADS = 8;
+Strategy.prototype.STRAIGHT_FLUSH = 9;
+Strategy.prototype.rankHand = function() {
+	var rank = this.GARBAGE;
+	return rank;
+}
+Strategy.prototype.playHand = function() {	
 	var action = 'fold';
 	if (this.actionsAllowed.indexOf('check') > -1) {
 		action = 'check';
@@ -120,15 +126,28 @@ Strategy.prototype.playHand = function() {
 	}
 	return action;
 }
-function MambaStrategy(me, players, pocket, community, betting, actionsAllowed) {
+function MambaStrategy(me, players, hand, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
-	this.pocket = pocket;
-	this.community = community;
+	this.hand = hand;
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
 }
 MambaStrategy.prototype = Object.create(Strategy.prototype);
 MambaStrategy.prototype.playHand = function() {
 	return this.actionsAllowed[this.actionsAllowed.length-1];
+}
+
+function unionArrays (x, y) {
+  var obj = {};
+  for (var i = x.length-1; i >= 0; -- i)
+     obj[x[i]] = x[i];
+  for (var i = y.length-1; i >= 0; -- i)
+     obj[y[i]] = y[i];
+  var res = []
+  for (var k in obj) {
+    if (obj.hasOwnProperty(k))  // <-- optional
+      res.push(obj[k]);
+  }
+  return res;
 }
