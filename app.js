@@ -13,6 +13,7 @@ app.post('/poker-bot', function(req, res){
   	var gameState = req.param('state');
 	var stateObject = xml.parseString(gameState);
 	var players = [];
+	var me = null, strategy = null;
 	var betting = [];
 	var objects = {};
 	var communityCards = [];
@@ -22,7 +23,11 @@ app.post('/poker-bot', function(req, res){
 	for (var i=0; i < objects['table'].childs.length; i++) {
 		var child = objects.table.childs[i];
 		if (child.name == 'player') {
-			players.push(new Player(child.attrib.name, child.attrib.sit, child.attrib.stack, child.attrib.in_stack, (child.attrib.sit == objects['table'].attrib.button)));
+			var player = new Player(child.attrib.name, child.attrib.sit, child.attrib.stack, child.attrib.in_stack, (child.attrib.sit == objects['table'].attrib.button));
+			if (player.name == playerName) {
+				me = player;
+			}
+			players.push(player);
 		}
 	}
 	for (var i=0; i < objects['betting'].childs.length; i++) {
@@ -45,17 +50,13 @@ app.post('/poker-bot', function(req, res){
 		}
 	}
 	var community = new Community(communityCards);
-	// for (var i=0; i < betting.length; i++) {
-	// 	for (var j=0; j < betting[i].length; j++) {
-	// 		console.log('round:'+i+' player:'+betting[i][j].player+' amount:'+betting[i][j].amount);
-	// 	}
-	// }
-	console.log("\n");
-	console.log(communityCards);
-	for (var i=0; i < objects['betting'].childs.length; i++) {
-		// console.log(objects.betting.childs[i]);
+	if (playerName == 'MsMamba') {
+		strategy = new MambaStrategy(me, players, pocket, community, betting, actionsAllowed);
 	}
-	res.send(actionsAllowed[actionsAllowed.length-1]);
+	else {
+		strategy = new Strategy(me, players, pocket, community, betting, actionsAllowed);		
+	}
+	res.send(strategy.playHand());
 });
 
 var server = app.listen(3000, function() {
@@ -92,4 +93,41 @@ function Bet(player, type, amount) {
 	this.player = player;
 	this.type = type;
 	this.amount = amount;
+}
+
+function Strategy(me, players, pocket, community, betting, actionsAllowed) {
+	this.me = me;
+	this.players = players;
+	this.pocket = pocket;
+	this.community = community;
+	this.betting = betting;
+	this.actionsAllowed = actionsAllowed;
+}
+Strategy.prototype.playHand = function() {
+	var action = 'fold';
+	if (this.actionsAllowed.indexOf('check') > -1) {
+		action = 'check';
+	}
+	else if (this.actionsAllowed.indexOf('call') > -1) {
+		action = 'call';
+	}
+	else if (this.actionsAllowed.indexOf('bet') > -1) {
+		action = 'bet';
+	}
+	else if (this.actionsAllowed.indexOf('allin') > -1) {
+		action = 'allin';
+	}
+	return action;
+}
+function MambaStrategy(me, players, pocket, community, betting, actionsAllowed) {
+	this.me = me;
+	this.players = players;
+	this.pocket = pocket;
+	this.community = community;
+	this.betting = betting;
+	this.actionsAllowed = actionsAllowed;
+}
+MambaStrategy.prototype = Object.create(Strategy.prototype);
+MambaStrategy.prototype.playHand = function() {
+	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
