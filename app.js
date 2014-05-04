@@ -50,11 +50,12 @@ app.post('/poker-bot', function(req, res){
 		}
 	}
 	var community = new Community(communityCards);
-	if (playerName == 'MsMamba') {
-		strategy = new MambaStrategy(me, players, pocket, community, betting, actionsAllowed);
-	}
-	else {
-		strategy = new Strategy(me, players, pocket, community, betting, actionsAllowed);		
+	switch (playerName) {
+		case 'MsMamba':
+			strategy = new MambaStrategy(me, players, pocket, community, betting, actionsAllowed);
+			break;
+		default:
+			strategy = new Strategy(me, players, pocket, community, betting, actionsAllowed);		
 	}
 	res.send(strategy.playHand());
 });
