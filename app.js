@@ -6,10 +6,10 @@ app.post('/poker-bot', function(req, res){
 	var playerName = req.param('name');
 	// possible actions: raise, bet, fold, call, check and allin
 	var actionsAllowed = req.param('actions').split("\n");
-	var hand = [];
+	var hand = new Hand([]);
 	var pocketCardsText = req.param('pocket').split(' ');
-	hand.push(new Card(pocketCardsText[0]));
-	hand.push(new Card(pocketCardsText[1]));
+	hand.addCard(new Card(pocketCardsText[0]));
+	hand.addCard(new Card(pocketCardsText[1]));
   	var gameState = req.param('state');
 	var stateObject = xml.parseString(gameState);
 	var players = [];
@@ -46,7 +46,7 @@ app.post('/poker-bot', function(req, res){
 	if (objects['community'].childs) {
 		for (var i=0; i < objects['community'].childs.length; i++) {
 			var child = objects.community.childs[i];
-			hand.push(new Card(child.attrib.rank + child.attrib.suit));
+			hand.addCard(new Card(child.attrib.rank + child.attrib.suit));
 		}
 	}
 	switch (playerName) {
@@ -55,7 +55,7 @@ app.post('/poker-bot', function(req, res){
 			break;
 		default:
 			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
-			strategy.rankHand();	
+			//strategy.hand.rankHand();	
 	}
 	res.send(strategy.playHand());
 });
@@ -82,6 +82,44 @@ function Card(text) {
 function Hand(cards) {
 	this.cards = cards;
 }
+Hand.prototype.GARBAGE = 0;
+Hand.prototype.ACE_HIGH = 1;
+Hand.prototype.PAIR = 2;
+Hand.prototype.TWO_PAIR = 3;
+Hand.prototype.TRIPS = 4;
+Hand.prototype.STRAIGHT = 5;
+Hand.prototype.FLUSH = 6;
+Hand.prototype.FULL_HOUSE = 7;
+Hand.prototype.QUADS = 8;
+Hand.prototype.STRAIGHT_FLUSH = 9;
+Hand.prototype.ranks = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+Hand.prototype.addCard = function(card) {
+	this.cards.push(card);
+}
+Hand.prototype.rankHand = function() {
+	var rank = this.QUADS;
+	this.hand.sort(function (a,b) { return this.ranks.indexOf(a.rank) - this.ranks.indexOf(b.rank); });
+	//console.log(rank);
+};
+Hand.prototype.isPairedPocket = function() {
+	if (this.length > 2) {
+		return false;
+	}
+	return (this.cards[0].rank == this.cards[1].rank)
+}
+Hand.prototype.isSuitedPocket = function() {
+	if (this.length > 2) {
+		return false;
+	}
+	return (this.cards[0].suit == this.cards[1].suit)
+}
+Hand.prototype.isConnectedPocket = function() {
+	if (this.length > 2) {
+		return false;
+	}
+	var rankDifference = Math.abs(this.ranks.indexOf(this.cards[0].rank) - this.ranks.indexOf(this.cards[1].rank));
+	return (rankDifference == 1 || rankDifference == 12);
+}
 
 function Bet(player, type, amount) {
 	this.player = player;
@@ -96,22 +134,6 @@ function Strategy(me, players, hand, betting, actionsAllowed) {
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
 }
-Strategy.prototype.GARBAGE = 0;
-Strategy.prototype.ACE_HIGH = 1;
-Strategy.prototype.PAIR = 2;
-Strategy.prototype.TWO_PAIR = 3;
-Strategy.prototype.TRIPS = 4;
-Strategy.prototype.STRAIGHT = 5;
-Strategy.prototype.FLUSH = 6;
-Strategy.prototype.FULL_HOUSE = 7;
-Strategy.prototype.QUADS = 8;
-Strategy.prototype.STRAIGHT_FLUSH = 9;
-Strategy.prototype.rankHand = function() {
-	var rank = this.QUADS;
-	var ranks = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
-	this.hand.sort(function (a,b) { return ranks.indexOf(a.rank) - ranks.indexOf(b.rank); });
-	console.log(rank);
-};
 Strategy.prototype.playHand = function() {	
 	var action = 'fold';
 	if (this.actionsAllowed.indexOf('check') > -1) {
