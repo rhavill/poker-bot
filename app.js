@@ -57,6 +57,7 @@ app.post('/poker-bot', function(req, res){
 			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
 			//strategy.hand.rankHand();	
 	}
+
 	res.send(strategy.playHand());
 });
 
@@ -102,23 +103,41 @@ Hand.prototype.rankHand = function() {
 	//console.log(rank);
 };
 Hand.prototype.isPairedPocket = function() {
-	if (this.length > 2) {
+	if (this.cards.length != 2) {
 		return false;
 	}
 	return (this.cards[0].rank == this.cards[1].rank)
 }
 Hand.prototype.isSuitedPocket = function() {
-	if (this.length > 2) {
+	if (this.cards.length != 2) {
 		return false;
 	}
 	return (this.cards[0].suit == this.cards[1].suit)
 }
 Hand.prototype.isConnectedPocket = function() {
-	if (this.length > 2) {
+	if (this.cards.length != 2) {
 		return false;
 	}
 	var rankDifference = Math.abs(this.ranks.indexOf(this.cards[0].rank) - this.ranks.indexOf(this.cards[1].rank));
 	return (rankDifference == 1 || rankDifference == 12);
+}
+Hand.prototype.isOneOfPocket = function(pairs) {
+	if (this.cards.length != 2) {
+		return false;
+	}
+	for (var i = 0; i < pairs.length; i++) {
+		var mustBeSuited = (pairs[i].split('')[2] == 's');
+		if (!mustBeSuited || (mustBeSuited && this.isSuitedPocket())) {
+			var rank1 = pairs[i].split('')[0];
+			var rank2 = pairs[i].split('')[1];
+			if ((this.cards[0].rank == rank1 && this.cards[1].rank == rank2) ||
+				(this.cards[0].rank == rank2 && this.cards[1].rank == rank1)) {
+				return true;
+			}
+
+		}
+	}
+	return false;
 }
 
 function Bet(player, type, amount) {
