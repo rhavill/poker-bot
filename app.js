@@ -251,11 +251,127 @@ EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
-	//console.log('big?'+this.me.isBigBlind()+' small?'+this.me.isSmallBlind());
-	//console.log('round:'+this.betting.length+' raiseCount:'+raiseCount+' afterMe:'+raiseOccurredAfterMe);
-	console.log();
-	for (i = 0; i < this.players.length; i++) {
-		console.log(this.players[i].name+' early:'+this.players[i].hasEarlyPosition()+' late'+this.players[i].hasLatePosition()+' mid'+this.players[i].hasMidPosition());
-	}
+	var preflopStrategy = {
+		unRaised: {
+			early: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT',
+					'AKs','AQs','AJs','ATs',
+					'KQs',
+					'AK','AQ'
+				],
+				callHands: [
+					'99','88','77',
+					'KJs',
+					'QJs',
+					'AJ',
+					'KQ'
+				]
+			},
+			middle: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99',
+					'AKs','AQs','AJs','ATs',
+					'KQs','KJs',
+					'AK','AQ','AJ',
+					'KQ'
+				],
+				callHands: [
+					'88','77','66','55','44','33','22',
+					'A9s','A8s','A7s',
+					'KTs',
+					'QJs','QTs',
+					'JTs',
+					'AT',
+					'KJ'
+				]
+			},
+			late: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99','88',
+					'AKs','AQs','AJs','ATs','A9s','A8s',
+					'KQs','KJs','KTs',
+					'QJs',
+					'AK','AQ','AJ','AT',
+					'KQ','KJ'
+				],
+				callHands: [
+					'77','66','55','44','33','22',
+					'A7s','A6s','A5s','A4s','A3s','A2s',
+					'K9s',
+					'QTs','Q9s',
+					'JTs','T9s','98s','87s',
+					'J9s','T8s'
+				]
+			},
+			bigBlind: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99',
+					'AKs','AQs','AJs','ATs',
+					'KQs','KJs',
+					'AK','AQ','AJ',
+					'KQ'
+				],
+				checkHands: ['*']
+			},
+			smallBlind: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99',
+					'AKs','AQs','AJs','ATs',
+					'KQs','KJs',
+					'AK','AQ','AJ',
+					'KQ'
+				],
+				callHands: [
+					'88','77','66','55','44','33','22',
+					'A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+					'KTs','K9s','K8s',
+					'QJs','QTs','Q9s','Q8s',
+					'JTs','T9s','98s','87s','76s','65s','54s',
+					'J9s','T8s',
+					'AT',
+					'KJ'
+				]
+			}
+		},
+		raised: {
+			// Against a raise from the big blind.
+			bigBlind: {
+				reRaise: [
+					'AA','KK','QQ','JJ',
+					'AKs','AQs',
+					'AK'
+				],
+				call: [
+					'TT','99','88','77','66','55','44','33','22',
+					'AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+					'KQs','KJs','KTs','K9s',
+					'QJs','QTs','Q9s',
+					'JTs','T9s','98s','87s',
+					'J9s','T8s'
+				]
+
+			},
+			// Against a raise in front of you from non-big blind.
+			againstRaise: {
+				reRaise: [
+					'AA','KK','QQ','JJ','TT',
+					'AKs','AQs','AJs',
+					'KQs',
+					'AK'
+				],
+				fold: ['*']
+			},
+			// Against re-raise from any position.
+			againstReRaise: {
+				reRaise: [
+					'AA','KK','QQ',
+					'AKs'
+				],
+				fold: ['*']
+			}
+
+		}
+	};
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
