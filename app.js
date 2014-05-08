@@ -99,6 +99,15 @@ Player.prototype.isSmallBlind = function () {
 Player.prototype.isBigBlind = function () {
 	return this.position == 2;
 }
+Player.prototype.hasEarlyPosition = function () {
+	return this.position && this.position < 5;
+}
+Player.prototype.hasMidPosition = function () {
+	return this.position > 4 && this.position < 7;
+}
+Player.prototype.hasLatePosition = function () {
+	return this.position == 0 || this.position > 6;
+}
 
 function Card(text) {
 	this.text = text;
@@ -230,6 +239,7 @@ MambaStrategy.prototype = Object.create(Strategy.prototype);
 MambaStrategy.prototype.playHand = function() {
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
+
 function EdMillerStrategy(me, players, hand, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
@@ -241,21 +251,11 @@ EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
-	console.log('big?'+this.me.isBigBlind()+' small?'+this.me.isSmallBlind());
+	//console.log('big?'+this.me.isBigBlind()+' small?'+this.me.isSmallBlind());
 	//console.log('round:'+this.betting.length+' raiseCount:'+raiseCount+' afterMe:'+raiseOccurredAfterMe);
+	console.log();
+	for (i = 0; i < this.players.length; i++) {
+		console.log(this.players[i].name+' early:'+this.players[i].hasEarlyPosition()+' late'+this.players[i].hasLatePosition()+' mid'+this.players[i].hasMidPosition());
+	}
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
-
-// function unionArrays (x, y) {
-//   var obj = {};
-//   for (var i = x.length-1; i >= 0; -- i)
-//      obj[x[i]] = x[i];
-//   for (var i = y.length-1; i >= 0; -- i)
-//      obj[y[i]] = y[i];
-//   var res = []
-//   for (var k in obj) {
-//     if (obj.hasOwnProperty(k))  // <-- optional
-//       res.push(obj[k]);
-//   }
-//   return res;
-// }
