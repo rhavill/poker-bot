@@ -93,6 +93,12 @@ function Player(name, seat, position, stack, inStack, hasButton) {
 	this.inStack = inStack;
 	this.hasButton = hasButton;
 }
+Player.prototype.isSmallBlind = function () {
+	return this.position == 1;
+}
+Player.prototype.isBigBlind = function () {
+	return this.position == 2;
+}
 
 function Card(text) {
 	this.text = text;
@@ -235,7 +241,8 @@ EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
-	console.log('round:'+this.betting.length+' raiseCount:'+raiseCount+' afterMe:'+raiseOccurredAfterMe);
+	console.log('big?'+this.me.isBigBlind()+' small?'+this.me.isSmallBlind());
+	//console.log('round:'+this.betting.length+' raiseCount:'+raiseCount+' afterMe:'+raiseOccurredAfterMe);
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
 
