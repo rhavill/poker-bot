@@ -57,7 +57,7 @@ app.post('/poker-bot', function(req, res){
 				bets.push(new Bet(grandChild.attrib.player, grandChild.attrib.type, grandChild.attrib.amount));
 			}
 		}
-		if (bets) {
+		if (bets.length) {
 			betting.push(bets);	
 		}
 	}
@@ -71,11 +71,13 @@ app.post('/poker-bot', function(req, res){
 		case 'MsMamba':
 			strategy = new MambaStrategy(me, players, hand, betting, actionsAllowed);
 			break;
+		case 'ShortStack':
+			strategy = new EdMillerStrategy(me, players, hand, betting, actionsAllowed);
+			break;
 		default:
 			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
 			//strategy.hand.rankHand();	
 	}
-	console.log(players);
 	res.send(strategy.playHand());
 });
 
@@ -188,6 +190,16 @@ Strategy.prototype.playHand = function() {
 	}
 	return action;
 }
+Strategy.prototype.getRaiseCount = function() {
+	var raiseCount = 0;
+	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+		if (this.betting[this.betting.length - 1][i].type == 'raise') {
+			raiseCount++;
+		}
+	}
+	return raiseCount
+}
+
 function MambaStrategy(me, players, hand, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
@@ -197,6 +209,18 @@ function MambaStrategy(me, players, hand, betting, actionsAllowed) {
 }
 MambaStrategy.prototype = Object.create(Strategy.prototype);
 MambaStrategy.prototype.playHand = function() {
+	return this.actionsAllowed[this.actionsAllowed.length-1];
+}
+function EdMillerStrategy(me, players, hand, betting, actionsAllowed) {
+	this.me = me;
+	this.players = players;
+	this.hand = hand;
+	this.betting = betting;
+	this.actionsAllowed = actionsAllowed;
+}
+EdMillerStrategy.prototype = Object.create(Strategy.prototype);
+EdMillerStrategy.prototype.playHand = function() {
+	var raiseCount = this.getRaiseCount();
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
 
