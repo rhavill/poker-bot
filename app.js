@@ -197,7 +197,20 @@ Strategy.prototype.getRaiseCount = function() {
 			raiseCount++;
 		}
 	}
-	return raiseCount
+	return raiseCount;
+}
+Strategy.prototype.raiseOccurredAfterMe = function() {
+	var raiseOccurredAfterMe = false;
+	var iMadeABet = false;
+	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+		if (this.betting[this.betting.length - 1][i].player == this.me.name) {
+			iMadeABet = true;
+		}
+		else if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
+			raiseOccurredAfterMe = true;
+		}
+	}
+	return raiseOccurredAfterMe;
 }
 
 function MambaStrategy(me, players, hand, betting, actionsAllowed) {
@@ -221,6 +234,8 @@ function EdMillerStrategy(me, players, hand, betting, actionsAllowed) {
 EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getRaiseCount();
+	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
+	console.log('round:'+this.betting.length+' raiseCount:'+raiseCount+' afterMe:'+raiseOccurredAfterMe);
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
 
