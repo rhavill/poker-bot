@@ -16,18 +16,36 @@ app.post('/poker-bot', function(req, res){
 	var me = null, strategy = null;
 	var betting = [];
 	var objects = {};
-
+	var buttonIndex = null;
 	for (var i=0; i < stateObject.childs.length; i++) {
 		objects[stateObject.childs[i].name] = stateObject.childs[i];
 	}
+	var buttonSeat = objects['table'].attrib.button;
 	for (var i=0; i < objects['table'].childs.length; i++) {
 		var child = objects.table.childs[i];
 		if (child.name == 'player') {
-			var player = new Player(child.attrib.name, child.attrib.sit, child.attrib.stack, child.attrib.in_stack, (child.attrib.sit == objects['table'].attrib.button));
+			var isButton = false;
+			if (child.attrib.sit == buttonSeat) {
+				isButton = true;
+				buttonIndex = i;
+			}
+			var player = new Player(child.attrib.name, child.attrib.sit, null, child.attrib.stack, child.attrib.in_stack, isButton);
 			if (player.name == playerName) {
 				me = player;
 			}
 			players.push(player);
+		}
+	}
+	var reachedButton = false;
+	for (var i=0; i < players.length; i++) {
+		if (i == buttonIndex) {
+			reachedButton = true;
+		}
+		if (reachedButton) {
+			players[i].position = i - buttonIndex;
+		}
+		else {
+			players[i].position = players.length - buttonIndex  + i;
 		}
 	}
 	for (var i=0; i < objects['betting'].childs.length; i++) {
@@ -57,7 +75,7 @@ app.post('/poker-bot', function(req, res){
 			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
 			//strategy.hand.rankHand();	
 	}
-
+	console.log(players);
 	res.send(strategy.playHand());
 });
 
@@ -65,9 +83,10 @@ var server = app.listen(3000, function() {
     console.log('Listening on port %d', server.address().port);
 });
 
-function Player(name, position, stack, inStack, hasButton) {
+function Player(name, seat, position, stack, inStack, hasButton) {
 	this.name = name;
-	this.position = position;
+	this.seat = seat;
+	this.position = position;	
 	this.stack = stack;
 	this.inStack = inStack;
 	this.hasButton = hasButton;
