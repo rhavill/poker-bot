@@ -190,6 +190,7 @@ function Strategy(me, players, hand, betting, actionsAllowed) {
 	this.actionsAllowed = actionsAllowed;
 }
 Strategy.prototype.playHand = function() {	
+	//return this.actionsAllowed[this.actionsAllowed.length-1];
 	var action = 'fold';
 	if (this.actionsAllowed.indexOf('check') > -1) {
 		action = 'check';
@@ -227,6 +228,51 @@ Strategy.prototype.raiseOccurredAfterMe = function() {
 	}
 	return raiseOccurredAfterMe;
 }
+// possible actions: raise, bet, fold, call, check and allin
+Strategy.prototype.tryToRaise = function() {
+	var action = 'allin';
+	if (this.actionsAllowed.indexOf('raise') > -1) {
+		action = 'raise';
+	}
+	else if (this.actionsAllowed.indexOf('bet') > -1) {
+		action = 'bet';
+	}
+	else if (this.actionsAllowed.indexOf('call') > -1) {
+		action = 'call';
+	}
+	else if (this.actionsAllowed.indexOf('check') > -1) {
+		action = 'check';
+	}
+	return action;
+}
+Strategy.prototype.tryToCall = function() {
+	var action = 'allin';
+	if (this.actionsAllowed.indexOf('call') > -1) {
+		action = 'call';
+	}
+	else if (this.actionsAllowed.indexOf('bet') > -1) {
+		action = 'bet';
+	}
+	else if (this.actionsAllowed.indexOf('check') > -1) {
+		action = 'check';
+	}
+	return action;
+}
+Strategy.prototype.check = function () {
+	return 'check';
+}
+Strategy.prototype.fold = function () {
+	return 'fold';
+}
+Strategy.prototype.isMyFirstBet = function () {
+	var isMyFirstBet = true;
+	for (var i=0; i < this.betting[0].length; i++) {
+		if (this.betting[0][i].player == this.me.name) {
+			isMyFirstBet = false;
+		}
+	}
+	return isMyFirstBet;
+}
 
 function MambaStrategy(me, players, hand, betting, actionsAllowed) {
 	this.me = me;
@@ -251,6 +297,7 @@ EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
+	var action = this.actionsAllowed[this.actionsAllowed.length-1];
 	var preflopStrategy = {
 		unRaised: {
 			early: {
@@ -348,7 +395,8 @@ EdMillerStrategy.prototype.playHand = function() {
 					'KQs','KJs','KTs','K9s',
 					'QJs','QTs','Q9s',
 					'JTs','T9s','98s','87s',
-					'J9s','T8s'
+					'J9s','T8s',
+					'AQ'
 				]
 
 			},
@@ -373,5 +421,42 @@ EdMillerStrategy.prototype.playHand = function() {
 
 		}
 	};
-	return this.actionsAllowed[this.actionsAllowed.length-1];
+	
+	// possible actions: raise, bet, fold, call, check and allin
+	if (this.betting.length == 1) {
+		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe);
+		if (raiseCount) {
+			if (raiseCount > 1) {
+				if (this.hand.isOneOfPocket(preflopStrategy.raised.againstReRaise.reRaise)) {
+					action = this.tryToRaise();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+			else {
+				if (this.me.isSmallBlind()) {
+					console.log('small');
+				}
+				else if (this.me.isBigBlind()) {
+					if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.reRaise)) {
+						action = this.tryToRaise();
+					}
+					else if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.call)) {
+						action = this.tryToCall();
+					}
+				}
+				else if (this.me.hasEarlyPosition()) {
+					console.log('early');
+				}
+				else if (this.me.hasMidPosition()) {
+					console.log('mid');
+				}
+				else if (this.me.hasLatePosition()) {
+					console.log('late');	
+				}
+			}
+		}
+	}
+	return action;
 }
