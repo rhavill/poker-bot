@@ -100,7 +100,7 @@ Player.prototype.isBigBlind = function () {
 	return this.position == 2;
 }
 Player.prototype.hasEarlyPosition = function () {
-	return this.position && this.position < 5;
+	return this.position > 2 && this.position < 5;
 }
 Player.prototype.hasMidPosition = function () {
 	return this.position > 4 && this.position < 7;
@@ -423,6 +423,7 @@ EdMillerStrategy.prototype.playHand = function() {
 	};
 	
 	// possible actions: raise, bet, fold, call, check and allin
+	// If this is the pre-flop betting round:
 	if (this.betting.length == 1) {
 		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe);
 		if (raiseCount) {
@@ -439,11 +440,15 @@ EdMillerStrategy.prototype.playHand = function() {
 					console.log('small');
 				}
 				else if (this.me.isBigBlind()) {
+					console.log('big');
 					if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.reRaise)) {
 						action = this.tryToRaise();
 					}
 					else if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.call)) {
 						action = this.tryToCall();
+					}
+					else {
+						action = this.fold;
 					}
 				}
 				else if (this.me.hasEarlyPosition()) {
@@ -455,6 +460,32 @@ EdMillerStrategy.prototype.playHand = function() {
 				else if (this.me.hasLatePosition()) {
 					console.log('late');	
 				}
+			}
+		}
+		else {
+			if (this.me.isSmallBlind()) {
+				console.log('small unRaised');
+			}
+			else if (this.me.isBigBlind()) {
+				console.log('bigBlind unRaised');
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.raise)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.call)) {
+					action = this.tryToCall();
+				}
+				else {
+					action = this.fold;
+				}
+			}
+			else if (this.me.hasEarlyPosition()) {
+				console.log('early unRaised');
+			}
+			else if (this.me.hasMidPosition()) {
+				console.log('mid unRaised');
+			}
+			else if (this.me.hasLatePosition()) {
+				console.log('late unRaised');	
 			}
 		}
 	}
