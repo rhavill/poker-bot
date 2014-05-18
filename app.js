@@ -464,11 +464,7 @@ EdMillerStrategy.prototype.playHand = function() {
 				}
 			}
 			else {
-				if (this.me.isSmallBlind()) {
-					console.log('small');
-				}
-				else if (this.me.isBigBlind()) {
-					console.log('big');
+				if (this.me.isBigBlind()) {
 					if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.reRaise)) {
 						action = this.tryToRaise();
 					}
@@ -479,14 +475,13 @@ EdMillerStrategy.prototype.playHand = function() {
 						action = this.fold();
 					}
 				}
-				else if (this.me.hasEarlyPosition()) {
-					console.log('early');
-				}
-				else if (this.me.hasMidPosition()) {
-					console.log('mid');
-				}
-				else if (this.me.hasLatePosition()) {
-					console.log('late');	
+				else {
+					if (this.hand.isOneOfPocket(preflopStrategy.raised.againstRaise.reRaise)) {
+						action = this.tryToRaise();
+					}
+					else {
+						action = this.fold();
+					}
 				}
 			}
 		}
