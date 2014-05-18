@@ -488,6 +488,15 @@ EdMillerStrategy.prototype.playHand = function() {
 		else {
 			if (this.me.isSmallBlind()) {
 				console.log('small unRaised');
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.callHands)) {
+					action = this.tryToCall();
+				}
+				else {
+					action = this.fold();
+				}
 			}
 			else if (this.me.isBigBlind()) {
 				console.log('bigBlind unRaised');
