@@ -187,6 +187,16 @@ Hand.prototype.hasPair = function() {
 	}
 	return hasPair;
 }
+Hand.prototype.hasTwoPair = function() {
+	var pairCount = 0;
+	var rankCounts = this.getRankCounts();
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 1) {
+			pairCount++;
+		}
+	}
+	return (pairCount > 1);
+}
 Hand.prototype.isPairedPocket = function() {
 	if (this.cards.length != 2) {
 		return false;
@@ -589,10 +599,11 @@ EdMillerStrategy.prototype.playHand = function() {
 		}
 	}
 	// If this is the flop betting round:
-	else if (this.betting.length <= 2) {
+	// else if (this.betting.length <= 2) {
+	else {
 		var hasPair = this.hand.hasPair();
-		console.log('pair?',hasPair);
-		console.log(this.hand.getSuitCounts());
+		var hasTwoPair = this.hand.hasTwoPair();
+		console.log('2 pair?',hasTwoPair);
 	}
 	return action;
 }
