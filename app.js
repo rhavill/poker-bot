@@ -273,6 +273,22 @@ Strategy.prototype.isMyFirstBet = function () {
 	}
 	return isMyFirstBet;
 }
+Strategy.prototype.raiseCountSinceMyFirstBet = function () {
+	var count = 0;
+	var iMadeABet = false;
+	console.log('raiseCountSinceMyFirstBet');
+	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+		console.log(this.betting[this.betting.length - 1]);
+		if (this.betting[this.betting.length - 1][i].player == this.me.name) {
+			iMadeABet = true;
+		}
+		if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
+			count++;
+		}
+	}
+	console.log();
+	return count;
+}
 
 function MambaStrategy(me, players, hand, betting, actionsAllowed) {
 	this.me = me;
@@ -297,6 +313,7 @@ EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
+	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
 	var action = this.actionsAllowed[this.actionsAllowed.length-1];
 	var preflopStrategy = {
 		unRaised: {
@@ -425,7 +442,7 @@ EdMillerStrategy.prototype.playHand = function() {
 	// possible actions: raise, bet, fold, call, check and allin
 	// If this is the pre-flop betting round:
 	if (this.betting.length == 1) {
-		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe);
+		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
 			if (raiseCount > 1) {
 				if (this.hand.isOneOfPocket(preflopStrategy.raised.againstReRaise.reRaise)) {
