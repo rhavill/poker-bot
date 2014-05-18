@@ -452,7 +452,6 @@ EdMillerStrategy.prototype.playHand = function() {
 	if (this.betting.length == 1) {
 		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
-			console.log('first?',this.isMyFirstBet());
 			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
 				action = this.tryToCall();
 			}
@@ -477,7 +476,7 @@ EdMillerStrategy.prototype.playHand = function() {
 						action = this.tryToCall();
 					}
 					else {
-						action = this.fold;
+						action = this.fold();
 					}
 				}
 				else if (this.me.hasEarlyPosition()) {
