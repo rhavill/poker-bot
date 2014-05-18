@@ -452,7 +452,11 @@ EdMillerStrategy.prototype.playHand = function() {
 	if (this.betting.length == 1) {
 		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
-			if (raiseCount > 1) {
+			console.log('first?',this.isMyFirstBet());
+			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
+				action = this.tryToCall();
+			}
+			else if (raiseCount > 1) {
 				if (this.hand.isOneOfPocket(preflopStrategy.raised.againstReRaise.reRaise)) {
 					action = this.tryToRaise();
 				}
