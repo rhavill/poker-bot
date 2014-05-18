@@ -152,6 +152,15 @@ Hand.prototype.rankHand = function() {
 	this.hand.sort(function (a,b) { return this.ranks.indexOf(a.rank) - this.ranks.indexOf(b.rank); });
 	//console.log(rank);
 };
+Hand.prototype.getHighestBoardRank = function() {
+	var highestRank = '2';
+	for (var i=2; i < this.cards.length; i++) {
+		if (this.ranks.indexOf(this.cards[i].rank) > this.ranks.indexOf(highestRank)) {
+			highestRank = this.cards[i].rank;
+		}
+	}
+	return highestRank;
+}
 Hand.prototype.getRankCounts = function() {
 	var counts = {};
 	for (var i=0; i < this.cards.length; i++) {
@@ -186,6 +195,18 @@ Hand.prototype.hasPair = function() {
 		}
 	}
 	return hasPair;
+}
+Hand.prototype.hasTopPair = function() {
+	var hasTopPair = false;
+	var highestRank = this.getHighestBoardRank();
+	var rankCounts = this.getRankCounts();
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 1 && rank == highestRank) {
+			hasTopPair = true;
+			break;
+		}
+	}
+	return hasTopPair;
 }
 Hand.prototype.hasTwoPair = function() {
 	var pairCount = 0;
@@ -603,7 +624,8 @@ EdMillerStrategy.prototype.playHand = function() {
 	else {
 		var hasPair = this.hand.hasPair();
 		var hasTwoPair = this.hand.hasTwoPair();
-		console.log('2 pair?',hasTwoPair);
+		var hasTopPair = this.hand.hasTopPair();
+		console.log('top pair?',hasTopPair);
 	}
 	return action;
 }
