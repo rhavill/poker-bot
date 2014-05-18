@@ -72,6 +72,9 @@ app.post('/poker-bot', function(req, res){
 			betting.push(bets);	
 		}
 	}
+	if (playerName == 'SmallStack') {
+		console.log(bets);
+	}
 	if (objects['community'].childs) {
 		for (var i=0; i < objects['community'].childs.length; i++) {
 			var child = objects.community.childs[i];
@@ -219,9 +222,11 @@ Strategy.prototype.playHand = function() {
 }
 Strategy.prototype.getRaiseCount = function() {
 	var raiseCount = 0;
-	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-		if (this.betting[this.betting.length - 1][i].type == 'raise') {
-			raiseCount++;
+	if (this.betting[this.betting.length - 1]) {
+		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			if (this.betting[this.betting.length - 1][i].type == 'raise') {
+				raiseCount++;
+			}
 		}
 	}
 	return raiseCount;
@@ -229,15 +234,32 @@ Strategy.prototype.getRaiseCount = function() {
 Strategy.prototype.raiseOccurredAfterMe = function() {
 	var raiseOccurredAfterMe = false;
 	var iMadeABet = false;
-	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-		if (this.betting[this.betting.length - 1][i].player == this.me.name) {
-			iMadeABet = true;
-		}
-		else if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
-			raiseOccurredAfterMe = true;
+	if (this.betting[this.betting.length - 1]) {
+		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			if (this.betting[this.betting.length - 1][i].player == this.me.name) {
+				iMadeABet = true;
+			}
+			else if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
+				raiseOccurredAfterMe = true;
+			}
 		}
 	}
 	return raiseOccurredAfterMe;
+}
+Strategy.prototype.raiseCountSinceMyFirstBet = function () {
+	var count = 0;
+	var iMadeABet = false;
+	if (this.betting[this.betting.length - 1]) {
+		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
+				count++;
+			}
+			if (this.betting[this.betting.length - 1][i].player == this.me.name) {
+				iMadeABet = true;
+			}
+		}
+	}
+	return count;
 }
 // possible actions: raise, bet, fold, call, check and allin
 Strategy.prototype.tryToRaise = function() {
@@ -283,19 +305,6 @@ Strategy.prototype.isMyFirstBet = function () {
 		}
 	}
 	return isMyFirstBet;
-}
-Strategy.prototype.raiseCountSinceMyFirstBet = function () {
-	var count = 0;
-	var iMadeABet = false;
-	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-		if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
-			count++;
-		}
-		if (this.betting[this.betting.length - 1][i].player == this.me.name) {
-			iMadeABet = true;
-		}
-	}
-	return count;
 }
 
 function MambaStrategy(me, players, hand, betting, actionsAllowed) {
@@ -449,7 +458,7 @@ EdMillerStrategy.prototype.playHand = function() {
 	
 	// possible actions: raise, bet, fold, call, check and allin
 	// If this is the pre-flop betting round:
-	if (this.betting.length == 1) {
+	if (this.betting.length <= 1) {
 		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
 			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
@@ -486,6 +495,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 		else {
+			console.log('not big unRaised');
 			if (this.me.isSmallBlind()) {
 				console.log('small unRaised');
 				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.raiseHands)) {
