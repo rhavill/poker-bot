@@ -1,5 +1,6 @@
 var xml = require('node-xml-lite');
 var express = require('express');
+var fs = require('fs');
 var app = express();
 app.use(express.bodyParser());
 app.post('/poker-bot', function(req, res){
@@ -17,6 +18,16 @@ app.post('/poker-bot', function(req, res){
 	var betting = [];
 	var objects = {};
 	var buttonIndex = null;
+
+	if (playerName == 'ShortStack') {
+		var d = new Date();
+		var fileName = d.getTime().toString();
+		fs.open('/tmp/'+fileName+'.log.txt','a', 0666, function(err, fd) {
+			fs.write(fd, gameState+"\n\n");
+			fs.close(fd);
+		});		
+	}
+	
 	for (var i=0; i < stateObject.childs.length; i++) {
 		objects[stateObject.childs[i].name] = stateObject.childs[i];
 	}
