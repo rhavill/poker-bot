@@ -287,17 +287,14 @@ Strategy.prototype.isMyFirstBet = function () {
 Strategy.prototype.raiseCountSinceMyFirstBet = function () {
 	var count = 0;
 	var iMadeABet = false;
-	console.log('raiseCountSinceMyFirstBet');
 	for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-		console.log(this.betting[this.betting.length - 1]);
-		if (this.betting[this.betting.length - 1][i].player == this.me.name) {
-			iMadeABet = true;
-		}
 		if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
 			count++;
 		}
+		if (this.betting[this.betting.length - 1][i].player == this.me.name) {
+			iMadeABet = true;
+		}
 	}
-	console.log();
 	return count;
 }
 
