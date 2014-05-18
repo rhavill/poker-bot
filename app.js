@@ -497,9 +497,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 		else {
-			console.log('not big unRaised');
 			if (this.me.isSmallBlind()) {
-				console.log('small unRaised');
 				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.raiseHands)) {
 					action = this.tryToRaise();
 				}
@@ -511,7 +509,6 @@ EdMillerStrategy.prototype.playHand = function() {
 				}
 			}
 			else if (this.me.isBigBlind()) {
-				console.log('bigBlind unRaised');
 				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.raise)) {
 					action = this.tryToRaise();
 				}
@@ -523,7 +520,6 @@ EdMillerStrategy.prototype.playHand = function() {
 				}
 			}
 			else if (this.me.hasEarlyPosition()) {
-				console.log('early unRaised');
 				//console.log(preflopStrategy.unRaised.early.raiseHands);
 				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.early.raiseHands)) {
 					action = this.tryToRaise();
@@ -536,7 +532,15 @@ EdMillerStrategy.prototype.playHand = function() {
 				}
 			}
 			else if (this.me.hasMidPosition()) {
-				console.log('mid unRaised');
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.middle.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.middle.callHands)) {
+					action = this.tryToCall();
+				}
+				else {
+					action = this.fold();
+				}
 			}
 			else if (this.me.hasLatePosition()) {
 				console.log('late unRaised');	
