@@ -91,7 +91,6 @@ app.post('/poker-bot', function(req, res){
 			break;
 		default:
 			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
-			//strategy.hand.rankHand();	
 	}
 	res.send(strategy.playHand());
 });
@@ -153,6 +152,41 @@ Hand.prototype.rankHand = function() {
 	this.hand.sort(function (a,b) { return this.ranks.indexOf(a.rank) - this.ranks.indexOf(b.rank); });
 	//console.log(rank);
 };
+Hand.prototype.getRankCounts = function() {
+	var counts = {};
+	for (var i=0; i < this.cards.length; i++) {
+		if (counts[this.cards[i].rank]) {
+			counts[this.cards[i].rank]++;
+		}
+		else {
+			counts[this.cards[i].rank] = 1;
+		}
+	}
+	return counts;
+}
+Hand.prototype.getSuitCounts = function() {
+	var counts = {};
+	for (var i=0; i < this.cards.length; i++) {
+		if (counts[this.cards[i].suit]) {
+			counts[this.cards[i].suit]++;
+		}
+		else {
+			counts[this.cards[i].suit] = 1;
+		}
+	}
+	return counts;	
+}
+Hand.prototype.hasPair = function() {
+	var hasPair = false;
+	var rankCounts = this.getRankCounts();
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 1) {
+			hasPair = true;
+			break;
+		}
+	}
+	return hasPair;
+}
 Hand.prototype.isPairedPocket = function() {
 	if (this.cards.length != 2) {
 		return false;
@@ -461,7 +495,7 @@ EdMillerStrategy.prototype.playHand = function() {
 	// possible actions: raise, bet, fold, call, check and allin
 	// If this is the pre-flop betting round:
 	if (this.betting.length <= 1) {
-		console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
+		// console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
 			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
 				action = this.tryToCall();
@@ -553,6 +587,12 @@ EdMillerStrategy.prototype.playHand = function() {
 				}
 			}
 		}
+	}
+	// If this is the flop betting round:
+	else if (this.betting.length <= 2) {
+		var hasPair = this.hand.hasPair();
+		console.log('pair?',hasPair);
+		console.log(this.hand.getSuitCounts());
 	}
 	return action;
 }
