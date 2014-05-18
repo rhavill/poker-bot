@@ -9,6 +9,7 @@ app.post('/poker-bot', function(req, res){
 	var actionsAllowed = req.param('actions').split("\n");
 	var hand = new Hand([]);
 	var pocketCardsText = req.param('pocket').split(' ');
+	//console.log('pocket: '+pocketCardsText);
 	hand.addCard(new Card(pocketCardsText[0]));
 	hand.addCard(new Card(pocketCardsText[1]));
   	var gameState = req.param('state');
@@ -73,7 +74,7 @@ app.post('/poker-bot', function(req, res){
 		}
 	}
 	if (playerName == 'SmallStack') {
-		console.log(bets);
+		// console.log(bets);
 	}
 	if (objects['community'].childs) {
 		for (var i=0; i < objects['community'].childs.length; i++) {
@@ -175,6 +176,7 @@ Hand.prototype.isOneOfPocket = function(pairs) {
 	if (this.cards.length != 2) {
 		return false;
 	}
+	// console.log(pairs);
 	for (var i = 0; i < pairs.length; i++) {
 		var mustBeSuited = (pairs[i].split('')[2] == 's');
 		if (!mustBeSuited || (mustBeSuited && this.isSuitedPocket())) {
@@ -522,6 +524,16 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 			else if (this.me.hasEarlyPosition()) {
 				console.log('early unRaised');
+				//console.log(preflopStrategy.unRaised.early.raiseHands);
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.early.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.early.callHands)) {
+					action = this.tryToCall();
+				}
+				else {
+					action = this.fold();
+				}
 			}
 			else if (this.me.hasMidPosition()) {
 				console.log('mid unRaised');
