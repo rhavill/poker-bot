@@ -218,6 +218,42 @@ Hand.prototype.hasTwoPair = function() {
 	}
 	return (pairCount > 1);
 }
+Hand.prototype.hasThreeOfAKind = function() {
+	var hasThreeOfAKind = false;
+	var rankCounts = this.getRankCounts();
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 2) {
+			hasThreeOfAKind = true;
+			break;
+		}
+	}
+	return hasThreeOfAKind;
+}
+Hand.prototype.hasFlush = function() {
+	var hasFlush = false;
+	var suitCounts = this.getSuitCounts();
+	for (var suit in suitCounts) {
+		if (suitCounts[suit] > 4) {
+			hasFlush = true;
+			break;
+		}
+	}
+	return hasFlush;
+}
+Hand.prototype.hasFullHouse = function() {
+	return (this.hasTwoPair() && this.hasThreeOfAKind());
+}
+Hand.prototype.hasFourOfAKind = function() {
+	var hasFourOfAKind = false;
+	var rankCounts = this.getRankCounts();
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 3) {
+			hasFourOfAKind = true;
+			break;
+		}
+	}
+	return hasFourOfAKind;
+}
 Hand.prototype.isPairedPocket = function() {
 	if (this.cards.length != 2) {
 		return false;
@@ -625,7 +661,11 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasPair = this.hand.hasPair();
 		var hasTwoPair = this.hand.hasTwoPair();
 		var hasTopPair = this.hand.hasTopPair();
-		console.log('top pair?',hasTopPair);
+		var hasThreeOfAKind = this.hand.hasThreeOfAKind();
+		var hasFullHouse = this.hand.hasFullHouse();
+		var hasFourOfAKind = this.hand.hasFourOfAKind();
+		var hasFlush = this.hand.hasFlush();
+		console.log('four?',hasFourOfAKind);
 	}
 	return action;
 }
