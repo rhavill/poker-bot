@@ -254,6 +254,23 @@ Hand.prototype.hasFourOfAKind = function() {
 	}
 	return hasFourOfAKind;
 }
+Hand.prototype.hasOverPair = function() {
+	var hasOverPair = true;
+	if (this.hasPairedPocket()) {
+		var highestBoardRank = this.getHighestBoardRank();
+		var pocketRank = this.cards[0].rank;
+		if (this.ranks.indexOf(highestBoardRank) >= this.ranks.indexOf(pocketRank)) {
+			hasOverPair = false;
+		}
+	}
+	else {
+		hasOverPair = false;
+	}
+	return hasOverPair;
+}
+Hand.prototype.hasPairedPocket = function() {
+	return (this.cards[0].rank == this.cards[1].rank)
+}
 Hand.prototype.isPairedPocket = function() {
 	if (this.cards.length != 2) {
 		return false;
@@ -665,7 +682,8 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
-		console.log('four?',hasFourOfAKind);
+		var hasOverPair = this.hand.hasOverPair();
+		console.log('over?',hasOverPair);
 	}
 	return action;
 }
