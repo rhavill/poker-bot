@@ -92,6 +92,16 @@ app.post('/poker-bot', function(req, res){
 		default:
 			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
 	}
+	var hasPair = strategy.hand.hasPair();
+	var hasTwoPair = strategy.hand.hasTwoPair();
+	var hasTopPair = strategy.hand.hasTopPair();
+	var hasThreeOfAKind = strategy.hand.hasThreeOfAKind();
+	var hasFullHouse = strategy.hand.hasFullHouse();
+	var hasFourOfAKind = strategy.hand.hasFourOfAKind();
+	var hasFlush = strategy.hand.hasFlush();
+	var hasOverPair = strategy.hand.hasOverPair();
+	var hasStraight = strategy.hand.hasStraight();
+	console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse());
 	res.send(strategy.playHand());
 });
 
@@ -160,6 +170,15 @@ Hand.prototype.getHighestBoardRank = function() {
 		}
 	}
 	return highestRank;
+}
+Hand.prototype.hasCardWithRank = function(rank) {
+	var hasCardWithRank = false;
+	for (var i=0; i < this.cards.length; i++) {
+		if (this.cards[i].rank == rank) {
+			hasCardWithRank = true;
+		}
+	}
+	return hasCardWithRank;
 }
 Hand.prototype.getRankCounts = function() {
 	var counts = {};
@@ -243,6 +262,45 @@ Hand.prototype.hasFlush = function() {
 Hand.prototype.hasFullHouse = function() {
 	return (this.hasTwoPair() && this.hasThreeOfAKind());
 }
+Hand.prototype.hasStraight = function() {
+	var straightCount = 0;
+	var maxStraightCount = 0;
+	var sortedCards = [];
+	var ranks = this.ranks;
+	for (var i=0; i < this.cards.length; i++) {
+		sortedCards.push(this.cards[i]);
+	}
+	sortedCards.sort(
+		function (a,b) {
+			return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+		}
+	);
+	//console.log(sortedCards);
+	for (var i=0; i < sortedCards.length; i++) {
+		if (straightCount == 0) {
+			straightCount = 1;
+			if (i == 0 ) {
+				if (sortedCards[i].rank == '2' && this.hasCardWithRank('A')) {
+					straightCount = 2;
+				}
+			}
+		}
+		else {
+			var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
+			if (rankDifference == 1) {
+				straightCount++;
+			}
+			else if (rankDifference > 1) {
+				straightCount = 1;
+			}
+		}
+		if (straightCount > maxStraightCount) {
+			maxStraightCount = straightCount;
+		}
+		//console.log('i',i,'rank',sortedCards[i].rank,'diff',rankDifference,'count',straightCount,'max',maxStraightCount);
+	}
+	return (maxStraightCount > 4);
+}
 Hand.prototype.hasFourOfAKind = function() {
 	var hasFourOfAKind = false;
 	var rankCounts = this.getRankCounts();
@@ -294,7 +352,6 @@ Hand.prototype.isOneOfPocket = function(pairs) {
 	if (this.cards.length != 2) {
 		return false;
 	}
-	// console.log(pairs);
 	for (var i = 0; i < pairs.length; i++) {
 		var mustBeSuited = (pairs[i].split('')[2] == 's');
 		if (!mustBeSuited || (mustBeSuited && this.isSuitedPocket())) {
@@ -683,7 +740,8 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
 		var hasOverPair = this.hand.hasOverPair();
-		console.log('over?',hasOverPair);
+		var hasStraight = this.hand.hasStraight();
+		//console.log('straight?',hasStraight);
 	}
 	return action;
 }
