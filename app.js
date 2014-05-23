@@ -284,7 +284,7 @@ Hand.prototype.hasFullHouse = function() {
 	}
 	if (tripsRank) {
 		for (var rank in rankCounts) {
-			if (rankCounts[rank] > 2 && rank != tripsRank) {
+			if (rankCounts[rank] > 1 && rank != tripsRank) {
 				hasFullHouse = true;
 			}
 		}
