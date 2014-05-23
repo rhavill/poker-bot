@@ -99,9 +99,10 @@ app.post('/poker-bot', function(req, res){
 	var hasFullHouse = strategy.hand.hasFullHouse();
 	var hasFourOfAKind = strategy.hand.hasFourOfAKind();
 	var hasFlush = strategy.hand.hasFlush();
+	var hasFlushDraw = strategy.hand.hasFlushDraw();
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
-	console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse());
+	console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse()+' hasFlushDraw? '+strategy.hand.hasFlushDraw());
 	res.send(strategy.playHand());
 });
 
@@ -258,6 +259,19 @@ Hand.prototype.hasFlush = function() {
 		}
 	}
 	return hasFlush;
+}
+Hand.prototype.hasFlushDraw = function() {
+	var hasFlushDraw = false;
+	var suitCounts = this.getSuitCounts();
+	if (this.cards.length < 7) {
+		for (var suit in suitCounts) {
+			if (suitCounts[suit] == 4) {
+				hasFlushDraw = true;
+				break;
+			}
+		}
+	}
+	return hasFlushDraw;
 }
 Hand.prototype.hasFullHouse = function() {
 	var hasFullHouse = false;
