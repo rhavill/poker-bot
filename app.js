@@ -260,7 +260,22 @@ Hand.prototype.hasFlush = function() {
 	return hasFlush;
 }
 Hand.prototype.hasFullHouse = function() {
-	return (this.hasTwoPair() && this.hasThreeOfAKind());
+	var hasFullHouse = false;
+	var rankCounts = this.getRankCounts();
+	var tripsRank = '';
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 2 && this.ranks.indexOf(rank) > this.ranks.indexOf(tripsRank)) {
+			tripsRank = rank;
+		}
+	}
+	if (tripsRank) {
+		for (var rank in rankCounts) {
+			if (rankCounts[rank] > 2 && rank != tripsRank) {
+				hasFullHouse = true;
+			}
+		}
+	}
+	return hasFullHouse;
 }
 Hand.prototype.hasStraight = function() {
 	var straightCount = 0;
