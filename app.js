@@ -9,7 +9,6 @@ app.post('/poker-bot', function(req, res){
 	var actionsAllowed = req.param('actions').split("\n");
 	var hand = new Hand([]);
 	var pocketCardsText = req.param('pocket').split(' ');
-	//console.log('pocket: '+pocketCardsText);
 	hand.addCard(new Card(pocketCardsText[0]));
 	hand.addCard(new Card(pocketCardsText[1]));
   	var gameState = req.param('state');
@@ -101,8 +100,8 @@ app.post('/poker-bot', function(req, res){
 	var hasFlushDraw = strategy.hand.hasFlushDraw();
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
-	console.log(playerName+' hasOpenEndedStraightDraw? '+strategy.hand.hasOpenEndedStraightDraw()+' hasStraight? '+strategy.hand.hasStraight());
-	console.log();
+	var hasStraightDraw = strategy.hand.hasStraightDraw();
+	console.log('round'+bettingRound+' '+playerName+' hasStraightDraw? '+strategy.hand.hasStraightDraw()+' hasOpenEndedStraightDraw? '+strategy.hand.hasOpenEndedStraightDraw()+' hasStraight? '+strategy.hand.hasStraight());
 	res.send(strategy.playHand());
 });
 
@@ -161,7 +160,6 @@ Hand.prototype.addCard = function(card) {
 Hand.prototype.rankHand = function() {
 	var rank = this.QUADS;
 	this.hand.sort(function (a,b) { return this.ranks.indexOf(a.rank) - this.ranks.indexOf(b.rank); });
-	//console.log(rank);
 };
 Hand.prototype.getHighestBoardRank = function() {
 	var highestRank = '2';
@@ -326,9 +324,51 @@ Hand.prototype.hasStraight = function() {
 		if (straightCount > maxStraightCount) {
 			maxStraightCount = straightCount;
 		}
-		//console.log('i',i,'rank',sortedCards[i].rank,'diff',rankDifference,'count',straightCount,'max',maxStraightCount);
 	}
 	return (maxStraightCount > 4);
+}
+Hand.prototype.hasStraightDraw = function() {
+	var straightCount = 0;
+	var maxStraightCount = 0;
+	var sortedCards = [];
+	var ranks = this.ranks;
+	var hasGap = false;
+	for (var i=0; i < this.cards.length; i++) {
+		sortedCards.push(this.cards[i]);
+	}
+	sortedCards.sort(
+		function (a,b) {
+			return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+		}
+	);
+	for (var i=0; i < sortedCards.length; i++) {
+		if (straightCount == 0) {
+			straightCount = 1;
+			if (i == 0 ) {
+				if (sortedCards[i].rank == '2' && this.hasCardWithRank('A')) {
+					straightCount = 2;
+				}
+			}
+		}
+		else {
+			var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
+			if (rankDifference == 1) {
+				straightCount++;
+			}
+			if (rankDifference == 2 && !hasGap) {
+				straightCount++;
+				hasGap = true;
+			}
+			else if (rankDifference > 1) {
+				straightCount = 1;
+				hasGap = false;
+			}
+		}
+		if (straightCount > maxStraightCount) {
+			maxStraightCount = straightCount;
+		}
+	}
+	return (maxStraightCount > 3);
 }
 Hand.prototype.hasOpenEndedStraightDraw = function() {
 	var straightCount = 0;
