@@ -101,7 +101,7 @@ app.post('/poker-bot', function(req, res){
 	var hasFlushDraw = strategy.hand.hasFlushDraw();
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
-	console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse()+' hasThreeOfAKind? '+strategy.hand.hasThreeOfAKind());
+	//console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse()+' hasStraight? '+strategy.hand.hasStraight());
 	res.send(strategy.playHand());
 });
 
@@ -675,9 +675,6 @@ EdMillerStrategy.prototype.playHand = function() {
 
 		}
 	};
-	if (this.me.name == 'ShortStack') {
-		console.log(this.bettingRound);
-	}
 	// possible actions: raise, bet, fold, call, check and allin
 	// If this is the pre-flop betting round:
 	if (this.bettingRound == 0) {
