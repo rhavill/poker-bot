@@ -101,7 +101,8 @@ app.post('/poker-bot', function(req, res){
 	var hasFlushDraw = strategy.hand.hasFlushDraw();
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
-	//console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse()+' hasStraight? '+strategy.hand.hasStraight());
+	console.log(playerName+' hasOpenEndedStraightDraw? '+strategy.hand.hasOpenEndedStraightDraw()+' hasStraight? '+strategy.hand.hasStraight());
+	console.log();
 	res.send(strategy.playHand());
 });
 
@@ -328,6 +329,40 @@ Hand.prototype.hasStraight = function() {
 		//console.log('i',i,'rank',sortedCards[i].rank,'diff',rankDifference,'count',straightCount,'max',maxStraightCount);
 	}
 	return (maxStraightCount > 4);
+}
+Hand.prototype.hasOpenEndedStraightDraw = function() {
+	var straightCount = 0;
+	var maxStraightCount = 0;
+	var sortedCards = [];
+	var ranks = this.ranks;
+	for (var i=0; i < this.cards.length; i++) {
+		sortedCards.push(this.cards[i]);
+	}
+	sortedCards.sort(
+		function (a,b) {
+			return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+		}
+	);
+	//console.log(sortedCards);
+	for (var i=0; i < sortedCards.length; i++) {
+		if (straightCount == 0) {
+			straightCount = 1;
+		}
+		else if (sortedCards[i].rank != 'A') {
+			var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
+			if (rankDifference == 1) {
+				straightCount++;
+			}
+			else if (rankDifference > 1) {
+				straightCount = 1;
+			}
+		}
+		if (straightCount > maxStraightCount) {
+			maxStraightCount = straightCount;
+		}
+		//console.log('i',i,'rank',sortedCards[i].rank,'diff',rankDifference,'count',straightCount,'max',maxStraightCount);
+	}
+	return (maxStraightCount > 3);
 }
 Hand.prototype.hasFourOfAKind = function() {
 	var hasFourOfAKind = false;
