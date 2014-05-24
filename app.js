@@ -333,39 +333,41 @@ Hand.prototype.hasStraightDraw = function() {
 	var sortedCards = [];
 	var ranks = this.ranks;
 	var hasGap = false;
-	for (var i=0; i < this.cards.length; i++) {
-		sortedCards.push(this.cards[i]);
-	}
-	sortedCards.sort(
-		function (a,b) {
-			return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+	if (this.cards.length < 7) {
+		for (var i=0; i < this.cards.length; i++) {
+			sortedCards.push(this.cards[i]);
 		}
-	);
-	for (var i=0; i < sortedCards.length; i++) {
-		if (straightCount == 0) {
-			straightCount = 1;
-			if (i == 0 ) {
-				if (sortedCards[i].rank == '2' && this.hasCardWithRank('A')) {
-					straightCount = 2;
+		sortedCards.sort(
+			function (a,b) {
+				return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+			}
+		);
+		for (var i=0; i < sortedCards.length; i++) {
+			if (straightCount == 0) {
+				straightCount = 1;
+				if (i == 0 ) {
+					if (sortedCards[i].rank == '2' && this.hasCardWithRank('A')) {
+						straightCount = 2;
+					}
 				}
 			}
-		}
-		else {
-			var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
-			if (rankDifference == 1) {
-				straightCount++;
+			else {
+				var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
+				if (rankDifference == 1) {
+					straightCount++;
+				}
+				if (rankDifference == 2 && !hasGap) {
+					straightCount++;
+					hasGap = true;
+				}
+				else if (rankDifference > 1) {
+					straightCount = 1;
+					hasGap = false;
+				}
 			}
-			if (rankDifference == 2 && !hasGap) {
-				straightCount++;
-				hasGap = true;
+			if (straightCount > maxStraightCount) {
+				maxStraightCount = straightCount;
 			}
-			else if (rankDifference > 1) {
-				straightCount = 1;
-				hasGap = false;
-			}
-		}
-		if (straightCount > maxStraightCount) {
-			maxStraightCount = straightCount;
 		}
 	}
 	return (maxStraightCount > 3);
@@ -375,32 +377,34 @@ Hand.prototype.hasOpenEndedStraightDraw = function() {
 	var maxStraightCount = 0;
 	var sortedCards = [];
 	var ranks = this.ranks;
-	for (var i=0; i < this.cards.length; i++) {
-		sortedCards.push(this.cards[i]);
-	}
-	sortedCards.sort(
-		function (a,b) {
-			return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
+	if (this.cards.length < 7) {
+		for (var i=0; i < this.cards.length; i++) {
+			sortedCards.push(this.cards[i]);
 		}
-	);
-	//console.log(sortedCards);
-	for (var i=0; i < sortedCards.length; i++) {
-		if (straightCount == 0) {
-			straightCount = 1;
-		}
-		else if (sortedCards[i].rank != 'A') {
-			var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
-			if (rankDifference == 1) {
-				straightCount++;
+		sortedCards.sort(
+			function (a,b) {
+				return ranks.indexOf(a.rank) - ranks.indexOf(b.rank);
 			}
-			else if (rankDifference > 1) {
+		);
+		//console.log(sortedCards);
+		for (var i=0; i < sortedCards.length; i++) {
+			if (straightCount == 0) {
 				straightCount = 1;
 			}
+			else if (sortedCards[i].rank != 'A') {
+				var rankDifference = ranks.indexOf(sortedCards[i].rank) - ranks.indexOf(sortedCards[i-1].rank);
+				if (rankDifference == 1) {
+					straightCount++;
+				}
+				else if (rankDifference > 1) {
+					straightCount = 1;
+				}
+			}
+			if (straightCount > maxStraightCount) {
+				maxStraightCount = straightCount;
+			}
+			//console.log('i',i,'rank',sortedCards[i].rank,'diff',rankDifference,'count',straightCount,'max',maxStraightCount);
 		}
-		if (straightCount > maxStraightCount) {
-			maxStraightCount = straightCount;
-		}
-		//console.log('i',i,'rank',sortedCards[i].rank,'diff',rankDifference,'count',straightCount,'max',maxStraightCount);
 	}
 	return (maxStraightCount > 3);
 }
@@ -847,18 +851,20 @@ EdMillerStrategy.prototype.playHand = function() {
 		}
 	}
 	// If this is the flop betting round:
-	// else if (this.betting.length <= 2) {
 	else {
 		var hasPair = this.hand.hasPair();
+		var hasOverPair = this.hand.hasOverPair();
 		var hasTwoPair = this.hand.hasTwoPair();
 		var hasTopPair = this.hand.hasTopPair();
 		var hasThreeOfAKind = this.hand.hasThreeOfAKind();
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
-		var hasOverPair = this.hand.hasOverPair();
 		var hasStraight = this.hand.hasStraight();
 		//console.log('straight?',hasStraight);
+		if (this.bettingRound == 1) {
+
+		}
 	}
 	return action;
 }
