@@ -19,6 +19,7 @@ app.post('/poker-bot', function(req, res){
 	var betting = [];
 	var objects = {};
 	var buttonIndex = null;
+	var bettingRound = 0;
 
 	if (playerName == 'ShortStack') {
 		var d = new Date();
@@ -73,24 +74,22 @@ app.post('/poker-bot', function(req, res){
 			betting.push(bets);	
 		}
 	}
-	if (playerName == 'SmallStack') {
-		// console.log(bets);
-	}
 	if (objects['community'].childs) {
 		for (var i=0; i < objects['community'].childs.length; i++) {
 			var child = objects.community.childs[i];
 			hand.addCard(new Card(child.attrib.rank + child.attrib.suit));
 		}
+		bettingRound = objects['community'].childs.length - 2;
 	}
 	switch (playerName) {
 		case 'MsMamba':
-			strategy = new MambaStrategy(me, players, hand, betting, actionsAllowed);
+			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
 		case 'ShortStack':
-			strategy = new EdMillerStrategy(me, players, hand, betting, actionsAllowed);
+			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
 		default:
-			strategy = new Strategy(me, players, hand, betting, actionsAllowed);	
+			strategy = new Strategy(me, players, hand, bettingRound, betting, actionsAllowed);	
 	}
 	var hasPair = strategy.hand.hasPair();
 	var hasTwoPair = strategy.hand.hasTwoPair();
@@ -102,7 +101,7 @@ app.post('/poker-bot', function(req, res){
 	var hasFlushDraw = strategy.hand.hasFlushDraw();
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
-	console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse()+' hasFlushDraw? '+strategy.hand.hasFlushDraw());
+	console.log(playerName+' hasFullHouse? '+strategy.hand.hasFullHouse()+' hasThreeOfAKind? '+strategy.hand.hasThreeOfAKind());
 	res.send(strategy.playHand());
 });
 
@@ -402,10 +401,11 @@ function Bet(player, type, amount) {
 	this.amount = amount;
 }
 
-function Strategy(me, players, hand, betting, actionsAllowed) {
+function Strategy(me, players, hand, bettingRound, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
 	this.hand = hand;
+	this.bettingRound = bettingRound;
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
 }
@@ -513,10 +513,11 @@ Strategy.prototype.isMyFirstBet = function () {
 	return isMyFirstBet;
 }
 
-function MambaStrategy(me, players, hand, betting, actionsAllowed) {
+function MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
 	this.hand = hand;
+	this.bettingRound = bettingRound;
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
 }
@@ -525,10 +526,11 @@ MambaStrategy.prototype.playHand = function() {
 	return this.actionsAllowed[this.actionsAllowed.length-1];
 }
 
-function EdMillerStrategy(me, players, hand, betting, actionsAllowed) {
+function EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
 	this.hand = hand;
+	this.bettingRound = bettingRound;
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
 }
@@ -661,10 +663,12 @@ EdMillerStrategy.prototype.playHand = function() {
 
 		}
 	};
-	
+	if (this.me.name == 'ShortStack') {
+		console.log(this.bettingRound);
+	}
 	// possible actions: raise, bet, fold, call, check and allin
 	// If this is the pre-flop betting round:
-	if (this.betting.length <= 1) {
+	if (this.bettingRound == 0) {
 		// console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
 			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
