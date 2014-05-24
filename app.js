@@ -437,6 +437,18 @@ Strategy.prototype.getRaiseCount = function() {
 	}
 	return raiseCount;
 }
+Strategy.prototype.getOtherPlayersRaiseCount = function() {
+	var raiseCount = 0;
+	if (this.betting[this.betting.length - 1]) {
+		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			if (this.betting[this.betting.length - 1][i].type == 'raise' &&
+				this.betting[this.betting.length - 1][i].player != this.me.name) {
+				raiseCount++;
+			}
+		}
+	}
+	return raiseCount;
+}
 Strategy.prototype.raiseOccurredAfterMe = function() {
 	var raiseOccurredAfterMe = false;
 	var iMadeABet = false;
@@ -457,11 +469,11 @@ Strategy.prototype.raiseCountSinceMyFirstBet = function () {
 	var iMadeABet = false;
 	if (this.betting[this.betting.length - 1]) {
 		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-			if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
-				count++;
-			}
 			if (this.betting[this.betting.length - 1][i].player == this.me.name) {
 				iMadeABet = true;
+			}
+			else if (this.betting[this.betting.length - 1][i].type == 'raise' && iMadeABet) {
+				count++;
 			}
 		}
 	}
@@ -536,7 +548,7 @@ function EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllow
 }
 EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
-	var raiseCount = this.getRaiseCount();
+	var raiseCount = this.getOtherPlayersRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
 	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
 	var action = this.actionsAllowed[this.actionsAllowed.length-1];
