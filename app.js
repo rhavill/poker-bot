@@ -523,10 +523,13 @@ Strategy.prototype.getPotTotal = function() {
 	}
 	return potTotal;
 }
-Strategy.prototype.isBigPot = function() {
+Strategy.prototype.hasBigPot = function() {
 	// pot is usuallly big if someone raises before flop
 	// 5.5 big bets (220) is also considered big
 	return (this.getPotTotal() >= 220);
+}
+Strategy.prototype.hasSmallPot = function() {
+	return (this.getPotTotal() < 220);
 }
 Strategy.prototype.playHand = function() {	
 	//return this.actionsAllowed[this.actionsAllowed.length-1];
@@ -628,8 +631,12 @@ Strategy.prototype.tryToCall = function() {
 	}
 	return action;
 }
-Strategy.prototype.check = function () {
-	return 'check';
+Strategy.prototype.checkFold = function () {
+	var action = 'fold';
+	if (this.actionsAllowed.indexOf('check') > -1) {
+		action = 'check';
+	}
+	return action;
 }
 Strategy.prototype.fold = function () {
 	return 'fold';
@@ -900,29 +907,36 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
+		// Maybe a flush draw should only be considered when player has a suited connectors pocket.
 		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		var isPairedBoard = this.hand.boardHasPair();
+
 		// maybe should be less aggressive w/ two pair.
 		if (hasTwoPair || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
 		// Flop
 		else if (this.bettingRound == 1) {
-			if (hasOverPair) {
+			if (hasOverPair || hasTopPair) {
 				// Maybe should fold if there is paired board or a flush draw?
 				action = this.tryToRaise();
 			}
 			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
 				action = this.tryToRaise();
 			}
+			else if (!hasPair) {
+				// do not bet with nothing after the flop.
+				// maybe pot size should be factored in this decision
+				action = this.checkFold();
+			}
 		}
 		// Turn
 		else if (this.bettingRound == 2) {
 			// we will even bet if turn card is bigger than my pair
 			// maybe should only bet if having second highest pair
-			if (!isPairedBoard && hasPair && this.isBigPot()) {
+			if (!isPairedBoard && hasPair && this.hasBigPot()) {
 				action = this.tryToRaise();
 			}
 			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
@@ -933,7 +947,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.bettingRound == 3) {
 			// might want to check if possible straights exist, 
 			// or if last card is high card
-			if (!isPairedBoard && hasPair && this.isBigPot()) {
+			if (!isPairedBoard && hasPair && this.hasBigPot()) {
 				action = this.tryToRaise();
 			}
 		}
