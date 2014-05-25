@@ -191,6 +191,20 @@ Hand.prototype.getRankCounts = function() {
 	}
 	return counts;
 }
+Hand.prototype.getBoardRankCounts = function() {
+	var counts = {};
+	if (this.cards.length > 2) {
+		for (var i=2; i < this.cards.length; i++) {
+			if (counts[this.cards[i].rank]) {
+				counts[this.cards[i].rank]++;
+			}
+			else {
+				counts[this.cards[i].rank] = 1;
+			}
+		}
+	}
+	return counts;
+}
 Hand.prototype.getSuitCounts = function() {
 	var counts = {};
 	for (var i=0; i < this.cards.length; i++) {
@@ -213,6 +227,17 @@ Hand.prototype.hasPair = function() {
 		}
 	}
 	return hasPair;
+}
+Hand.prototype.boardHasPair = function() {
+	var boardHasPair = false;
+	var rankCounts = this.getBoardRankCounts();
+	for (var rank in rankCounts) {
+		if (rankCounts[rank] > 1) {
+			boardHasPair = true;
+			break;
+		}
+	}
+	return boardHasPair;
 }
 Hand.prototype.hasTopPair = function() {
 	var hasTopPair = false;
@@ -878,6 +903,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
+		var isPairedBoard = this.hand.boardHasPair();
 		// maybe should be less aggressive w/ two pair.
 		if (hasTwoPair || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
@@ -896,7 +922,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.bettingRound == 2) {
 			// we will even bet if turn card is bigger than my pair
 			// maybe should only bet if having second highest pair
-			if (hasPair && this.isBigPot()) {
+			if (!isPairedBoard && hasPair && this.isBigPot()) {
 				action = this.tryToRaise();
 			}
 			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
@@ -907,7 +933,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.bettingRound == 3) {
 			// might want to check if possible straights exist, 
 			// or if last card is high card
-			if (hasPair && this.isBigPot()) {
+			if (!isPairedBoard && hasPair && this.isBigPot()) {
 				action = this.tryToRaise();
 			}
 		}
