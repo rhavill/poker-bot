@@ -498,6 +498,11 @@ Strategy.prototype.getPotTotal = function() {
 	}
 	return potTotal;
 }
+Strategy.prototype.isBigPot = function() {
+	// pot is usuallly big if someone raises before flop
+	// 5.5 big bets (220) is also considered big
+	return (this.getPotTotal() >= 220);
+}
 Strategy.prototype.playHand = function() {	
 	//return this.actionsAllowed[this.actionsAllowed.length-1];
 	var action = 'fold';
@@ -640,7 +645,8 @@ EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getOtherPlayersRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
 	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
-	var action = this.actionsAllowed[this.actionsAllowed.length-1];
+	// var action = this.actionsAllowed[this.actionsAllowed.length-1];
+	var action = this.fold();
 	var preflopStrategy = {
 		unRaised: {
 			early: {
@@ -860,7 +866,6 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 	}
-	// If this is the flop betting round:
 	else {
 		var hasPair = this.hand.hasPair();
 		var hasOverPair = this.hand.hasOverPair();
@@ -872,8 +877,25 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFlush = this.hand.hasFlush();
 		var hasStraight = this.hand.hasStraight();
 		//console.log('straight?',hasStraight);
+		// Flop
 		if (this.bettingRound == 1) {
-
+			if (hasOverPair) {
+				// Maybe should fold if there is paired board or a flush draw?
+				action = this.tryToRaise();
+			}
+		}
+		// Turn
+		else if (this.bettingRound == 2) {
+			// we will even bet if turn card is bigger than my pair
+			// maybe should only bet if having second highest pair
+			if (hasPair && this.isBigPot()) {
+				action = this.tryToRaise();
+			}
+		}
+		// River
+		else if (this.bettingRound == 3) {
+			// might want to check if possible straights exist, 
+			// or if last card is high card
 		}
 	}
 	return action;
