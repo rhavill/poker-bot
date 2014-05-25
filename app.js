@@ -875,12 +875,18 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
+		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
+		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		//console.log('straight?',hasStraight);
 		// Flop
 		if (this.bettingRound == 1) {
 			if (hasOverPair) {
 				// Maybe should fold if there is paired board or a flush draw?
+				action = this.tryToRaise();
+			}
+			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
+				console.log('rasing with flush draw.');
 				action = this.tryToRaise();
 			}
 		}
@@ -896,6 +902,9 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.bettingRound == 3) {
 			// might want to check if possible straights exist, 
 			// or if last card is high card
+			if (hasPair && this.isBigPot()) {
+				action = this.tryToRaise();
+			}
 		}
 	}
 	return action;
