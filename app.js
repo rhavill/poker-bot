@@ -575,7 +575,7 @@ Strategy.prototype.raiseCountSinceMyFirstBet = function () {
 }
 // possible actions: raise, bet, fold, call, check and allin
 Strategy.prototype.tryToRaise = function() {
-	var action = 'allin';
+	var action = 'check';
 	if (this.actionsAllowed.indexOf('raise') > -1) {
 		action = 'raise';
 	}
@@ -585,21 +585,21 @@ Strategy.prototype.tryToRaise = function() {
 	else if (this.actionsAllowed.indexOf('call') > -1) {
 		action = 'call';
 	}
-	else if (this.actionsAllowed.indexOf('check') > -1) {
-		action = 'check';
+	else if (this.actionsAllowed.indexOf('allin') > -1) {
+		action = 'allin';
 	}
 	return action;
 }
 Strategy.prototype.tryToCall = function() {
-	var action = 'allin';
+	var action = 'bet';
 	if (this.actionsAllowed.indexOf('call') > -1) {
 		action = 'call';
 	}
-	else if (this.actionsAllowed.indexOf('bet') > -1) {
-		action = 'bet';
-	}
 	else if (this.actionsAllowed.indexOf('check') > -1) {
 		action = 'check';
+	}
+	else if (this.actionsAllowed.indexOf('allin') > -1) {
+		action = 'allin';
 	}
 	return action;
 }
@@ -878,11 +878,12 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
+		// maybe should be less aggressive w/ two pair.
 		if (hasTwoPair || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
 		// Flop
-		if (this.bettingRound == 1) {
+		else if (this.bettingRound == 1) {
 			if (hasOverPair) {
 				// Maybe should fold if there is paired board or a flush draw?
 				action = this.tryToRaise();
@@ -897,6 +898,9 @@ EdMillerStrategy.prototype.playHand = function() {
 			// maybe should only bet if having second highest pair
 			if (hasPair && this.isBigPot()) {
 				action = this.tryToRaise();
+			}
+			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
+				action = this.tryToCall();
 			}
 		}
 		// River
