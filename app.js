@@ -101,7 +101,7 @@ app.post('/poker-bot', function(req, res){
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
 	var hasStraightDraw = strategy.hand.hasStraightDraw();
-	console.log('round'+bettingRound+' '+playerName+' hasStraightDraw? '+strategy.hand.hasStraightDraw()+' hasOpenEndedStraightDraw? '+strategy.hand.hasOpenEndedStraightDraw()+' hasStraight? '+strategy.hand.hasStraight());
+	console.log('round'+bettingRound+' $'+strategy.getPotTotal()+' '+playerName+' hasStraightDraw? '+strategy.hand.hasStraightDraw()+' hasOpenEndedStraightDraw? '+strategy.hand.hasOpenEndedStraightDraw()+' hasStraight? '+strategy.hand.hasStraight());
 	res.send(strategy.playHand());
 });
 
@@ -487,6 +487,16 @@ function Strategy(me, players, hand, bettingRound, betting, actionsAllowed) {
 	this.bettingRound = bettingRound;
 	this.betting = betting;
 	this.actionsAllowed = actionsAllowed;
+}
+Strategy.prototype.getPotTotal = function() {
+	var potTotal = 0;
+	if (this.betting) {
+		//console.log(this.players);
+		for (var i=0; i < this.players.length; i++) {
+			potTotal += parseInt(this.players[i].inStack) - parseInt(this.players[i].stack);
+		}
+	}
+	return potTotal;
 }
 Strategy.prototype.playHand = function() {	
 	//return this.actionsAllowed[this.actionsAllowed.length-1];
