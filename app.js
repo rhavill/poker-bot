@@ -878,7 +878,9 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
-		//console.log('straight?',hasStraight);
+		if (hasTwoPair || hasThreeOfAKind || hasFlush || hasStraight) {
+			action = this.tryToRaise();
+		}
 		// Flop
 		if (this.bettingRound == 1) {
 			if (hasOverPair) {
@@ -886,7 +888,6 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.tryToRaise();
 			}
 			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
-				console.log('rasing with flush draw.');
 				action = this.tryToRaise();
 			}
 		}
