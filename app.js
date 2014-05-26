@@ -539,6 +539,47 @@ Strategy.prototype.getPotTotal = function() {
 	}
 	return potTotal;
 }
+Strategy.prototype.getBiggestBetThisRound = function(player) {
+	var biggestBet = 0;
+	if (this.bettingRound == 0) {
+		// big blind has bet 20 if this is pre-flop
+		if (player) {
+			if (player.isSmallBlind()) {
+				biggestBet = 10;
+			}
+			else if (player.isBigBlind()) {
+				biggestBet = 20;
+			}
+		}
+		else {
+			biggestBet = 20;
+		}
+	}
+	if (this.betting[this.betting.length - 1]) {
+		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			if (player) {
+				if (this.betting[this.betting.length - 1][i].amount > biggestBet && this.betting[this.betting.length - 1][i].player == this.me.name) {
+					biggestBet = this.betting[this.betting.length - 1][i].amount;
+				}
+			}
+			else {
+				if (this.betting[this.betting.length - 1][i].amount > biggestBet) {
+					biggestBet = this.betting[this.betting.length - 1][i].amount;
+				}				
+			}
+		}
+	}
+	return biggestBet;
+}
+Strategy.prototype.getMinimumAllowedBet = function() {
+	var minimumBet = 0;
+	var biggestBet = this.getBiggestBetThisRound();
+	if (biggestBet) {
+		var myBiggestBet = this.getBiggestBetThisRound(this.me);
+		minimumBet = biggestBet - myBiggestBet;
+	}
+	return minimumBet;
+}
 Strategy.prototype.hasBigPot = function() {
 	// pot is usuallly big if someone raises before flop
 	// 5.5 big bets (220) is also considered big
@@ -693,6 +734,8 @@ EdMillerStrategy.prototype.playHand = function() {
 
 
 	var potOdds = new PotOdds();
+	console.log('odds'+potOdds.getBreakEvenOdds(4));
+
 	var raiseCount = this.getOtherPlayersRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
 	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
@@ -971,5 +1014,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 	}
+	console.log(this.betting);
+	console.log('biggest:'+this.getBiggestBetThisRound()+'mybiggest:'+this.getBiggestBetThisRound(this.me)+'min:'+this.getMinimumAllowedBet());
 	return action;
 }
