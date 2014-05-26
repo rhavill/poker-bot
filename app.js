@@ -499,6 +499,22 @@ Hand.prototype.isOneOfPocket = function(pairs) {
 	return false;
 }
 
+function PotOdds() {
+}
+PotOdds.prototype.getBreakEvenOdds = function(outs, returnAsRatio) {
+	var oddsForOuts = ['', 45, 22, 14.3, 10.5, 8.2, 6.7, 5.6, 4.75, 4.1];
+	var odds = 0;
+	if (outs && outs < 10) {
+		odds = oddsForOuts[outs];
+		if (!returnAsRatio) {
+			// return as a percentage
+			odds = 1 / (odds + 1);
+		}
+
+	}
+	return odds;
+}
+
 function Bet(player, type, amount) {
 	this.player = player;
 	this.type = type;
@@ -674,6 +690,9 @@ function EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllow
 }
 EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
+
+
+	var potOdds = new PotOdds();
 	var raiseCount = this.getOtherPlayersRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
 	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
