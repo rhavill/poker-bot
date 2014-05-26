@@ -972,6 +972,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		// Maybe a flush draw should only be considered when player has a suited connectors pocket.
 		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
+		var hasStraightDraw = this.hand.hasStraightDraw();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		var isPairedBoard = this.hand.boardHasPair();
 
@@ -979,19 +980,19 @@ EdMillerStrategy.prototype.playHand = function() {
 		if (hasTwoPair || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
+		else if (hasOverPair || hasTopPair) {
+			// Maybe should fold if there is paired board or a flush draw?
+			action = this.tryToRaise();
+		}
+		else if (!hasPair) {
+			// do not bet with nothing after the flop.
+			// maybe pot size should be factored in this decision
+			action = this.checkFold();
+		}
 		// Flop
 		else if (this.bettingRound == 1) {
-			if (hasOverPair || hasTopPair) {
-				// Maybe should fold if there is paired board or a flush draw?
-				action = this.tryToRaise();
-			}
 			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
 				action = this.tryToRaise();
-			}
-			else if (!hasPair) {
-				// do not bet with nothing after the flop.
-				// maybe pot size should be factored in this decision
-				action = this.checkFold();
 			}
 		}
 		// Turn
