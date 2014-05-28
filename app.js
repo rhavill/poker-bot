@@ -734,7 +734,6 @@ EdMillerStrategy.prototype.playHand = function() {
 
 
 	var potOdds = new PotOdds();
-	console.log('odds'+potOdds.getBreakEvenOdds(4));
 
 	var raiseCount = this.getOtherPlayersRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
@@ -984,6 +983,17 @@ EdMillerStrategy.prototype.playHand = function() {
 			// Maybe should fold if there is paired board or a flush draw?
 			action = this.tryToRaise();
 		}
+		else if (hasStraightDraw && !hasOpenEndedStraightDraw) {
+			var minimumBet = this.getMinimumAllowedBet();
+			var outs = 4;
+			var potSize = this.getPotTotal();
+			var betPotRatio = minimumBet / potSize;
+			var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
+			console.log('bettopot:' + betPotRatio + 'breakeven: '+breakEvenOdds);
+			if (breakEvenOdds > betPotRatio) {
+				action = this.tryToCall();
+			}
+		}
 		else if (!hasPair) {
 			// do not bet with nothing after the flop.
 			// maybe pot size should be factored in this decision
@@ -991,7 +1001,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		}
 		// Flop
 		else if (this.bettingRound == 1) {
-			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
+			if (hasFlushDraw || hasOpenEndedStraightDraw) {
 				action = this.tryToRaise();
 			}
 		}
@@ -1015,7 +1025,6 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 	}
-	console.log(this.betting);
-	console.log('biggest:'+this.getBiggestBetThisRound()+'mybiggest:'+this.getBiggestBetThisRound(this.me)+'min:'+this.getMinimumAllowedBet());
+	//console.log('biggest:'+this.getBiggestBetThisRound()+'mybiggest:'+this.getBiggestBetThisRound(this.me)+'min:'+this.getMinimumAllowedBet());
 	return action;
 }
