@@ -104,7 +104,7 @@ app.post('/poker-bot', function(req, res){
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
 	var hasStraightDraw = strategy.hand.hasStraightDraw();
-	console.log('round'+bettingRound+' $'+strategy.getPotTotal()+' '+playerName+' hasStraightDraw? '+strategy.hand.hasStraightDraw()+' hasOpenEndedStraightDraw? '+strategy.hand.hasOpenEndedStraightDraw()+' hasStraight? '+strategy.hand.hasStraight());
+	console.log('round'+bettingRound+' $'+strategy.getPotTotal()+' '+playerName+' min bet:'+strategy.getMinimumAllowedBet()+' big pot?:'+strategy.hasBigPot());
 	res.send(strategy.playHand());
 });
 
@@ -462,6 +462,7 @@ Hand.prototype.hasOverPair = function() {
 	return hasOverPair;
 }
 Hand.prototype.hasWeakPair = function() {
+	// Ace with low kicker can be considered a weak pair.
 	var hasWeakPair = false;
 	if (this.hasPair() && !(this.hasTopPair() || this.hasOverPair())) {
 		hasWeakPair = true;
@@ -594,10 +595,17 @@ Strategy.prototype.hasBigPot = function() {
 	// pot is usuallly big if someone raises before flop
 	// 5.5 big bets (220) is also considered big
 	// pot odds of 10 to 1 can also define a large pot
-	return (this.getPotTotal() >= 220);
+	var hasBigPot = false;
+	var bigPotPercent = 1 / 11;
+	var min = this.getMinimumAllowedBet();
+	var pot = this.getPotTotal();
+	if ((min / pot) < bigPotPercent) {
+		hasBigPot = true;
+	}
+	return hasBigPot;
 }
 Strategy.prototype.hasSmallPot = function() {
-	return (this.getPotTotal() < 220);
+	return !this.hasBigPot();
 }
 Strategy.prototype.playHand = function() {	
 	//return this.actionsAllowed[this.actionsAllowed.length-1];
