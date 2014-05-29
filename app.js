@@ -593,6 +593,7 @@ Strategy.prototype.getMinimumAllowedBet = function() {
 Strategy.prototype.hasBigPot = function() {
 	// pot is usuallly big if someone raises before flop
 	// 5.5 big bets (220) is also considered big
+	// pot odds of 10 to 1 can also define a large pot
 	return (this.getPotTotal() >= 220);
 }
 Strategy.prototype.hasSmallPot = function() {
@@ -1008,6 +1009,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			// Fold a weak pair after raise.
 			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
 			// Maybe should count a hand paired with the board as 5 outs?
+			// Is a two-pair possibility realy worh 5 outs?
 			action = 'fold';
 		}
 		else if (!hasPair) {
