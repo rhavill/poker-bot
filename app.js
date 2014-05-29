@@ -1007,7 +1007,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		}
 		else if (this.hand.hasWeakPair() && raiseCount) {
 			// Fold a weak pair after raise.
-			// Maybe should check pot size.
+			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
 			action = 'fold';
 		}
 		else if (!hasPair) {
