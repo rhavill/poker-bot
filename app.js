@@ -1000,7 +1000,6 @@ EdMillerStrategy.prototype.playHand = function() {
 			var potSize = this.getPotTotal();
 			var betPotRatio = minimumBet / potSize;
 			var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
-			console.log('bettopot:' + betPotRatio + 'breakeven: '+breakEvenOdds);
 			if (breakEvenOdds > betPotRatio) {
 				action = this.tryToCall();
 			}
@@ -1008,6 +1007,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.hand.hasWeakPair() && raiseCount) {
 			// Fold a weak pair after raise.
 			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
+			// Maybe should count a hand paired with the board as 5 outs?
 			action = 'fold';
 		}
 		else if (!hasPair) {
