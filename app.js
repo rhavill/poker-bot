@@ -81,6 +81,9 @@ app.post('/poker-bot', function(req, res){
 		bettingRound = objects['community'].childs.length - 2;
 	}
 	switch (playerName) {
+		case 'Bro':
+			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
+			break;
 		case 'MsMamba':
 			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
@@ -457,6 +460,13 @@ Hand.prototype.hasOverPair = function() {
 		hasOverPair = false;
 	}
 	return hasOverPair;
+}
+Hand.prototype.hasWeakPair = function() {
+	var hasWeakPair = false;
+	if (this.hasPair() && !(this.hasTopPair() || this.hasOverPair())) {
+		hasWeakPair = true;
+	}
+	return hasWeakPair;
 }
 Hand.prototype.hasPairedPocket = function() {
 	return (this.cards[0].rank == this.cards[1].rank)
@@ -959,6 +969,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 	}
+	// post-flop betting rounds
 	else {
 		var hasPair = this.hand.hasPair();
 		var hasOverPair = this.hand.hasOverPair();
@@ -993,6 +1004,11 @@ EdMillerStrategy.prototype.playHand = function() {
 			if (breakEvenOdds > betPotRatio) {
 				action = this.tryToCall();
 			}
+		}
+		else if (this.hand.hasWeakPair() && raiseCount) {
+			// Fold a weak pair after raise.
+			// Maybe should check pot size.
+			action = 'fold';
 		}
 		else if (!hasPair) {
 			// do not bet with nothing after the flop.
