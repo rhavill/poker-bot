@@ -1091,7 +1091,7 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.checkFold;
 			}
 		}
-		else if (this.hand.hasWeakPair()) {
+		else if (this.hand.hasWeakPair() && !isPairedBoard) {
 			action = this.checkCall();
 		}
 		else if (!hasPair) {
