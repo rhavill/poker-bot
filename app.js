@@ -967,14 +967,11 @@ EdMillerStrategy.prototype.playHand = function() {
 				}
 			}
 			else if (this.me.isBigBlind()) {
-				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.raise)) {
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.raiseHands)) {
 					action = this.tryToRaise();
 				}
-				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.call)) {
-					action = this.tryToCall();
-				}
 				else {
-					action = this.fold;
+					action = this.checkCall();
 				}
 			}
 			else if (this.me.hasEarlyPosition()) {
