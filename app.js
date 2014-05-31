@@ -627,17 +627,17 @@ Strategy.prototype.playHand = function() {
 	}
 	return action;
 }
-Strategy.prototype.getRaiseCount = function() {
-	var raiseCount = 0;
-	if (this.betting[this.betting.length - 1]) {
-		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-			if (this.betting[this.betting.length - 1][i].type == 'raise') {
-				raiseCount++;
-			}
-		}
-	}
-	return raiseCount;
-}
+// Strategy.prototype.getRaiseCount = function() {
+// 	var raiseCount = 0;
+// 	if (this.betting[this.betting.length - 1]) {
+// 		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+// 			if (this.betting[this.betting.length - 1][i].type == 'raise') {
+// 				raiseCount++;
+// 			}
+// 		}
+// 	}
+// 	return raiseCount;
+// }
 Strategy.prototype.iHaveRaised = function() {
 	var iHaveRaised = false;
 	if (this.betting[this.betting.length - 1]) {
@@ -651,10 +651,11 @@ Strategy.prototype.iHaveRaised = function() {
 }
 Strategy.prototype.getOtherPlayersRaiseCount = function() {
 	var raiseCount = 0;
-	if (this.betting[this.betting.length - 1]) {
-		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
-			if (this.betting[this.betting.length - 1][i].type == 'raise' &&
-				this.betting[this.betting.length - 1][i].player != this.me.name) {
+	var round = this.bettingRound;
+	if (this.betting[round]) {
+		for (var i = 0; i < this.betting[round].length; i++) {
+			if (this.betting[round][i].type == 'raise' &&
+				this.betting[round][i].player != this.me.name) {
 				raiseCount++;
 			}
 		}
@@ -1028,10 +1029,10 @@ EdMillerStrategy.prototype.playHand = function() {
 		var isPairedBoard = this.hand.boardHasPair();
 
 		// maybe should be less aggressive w/ two pair.
-		if ((hasTwoPair && !raiseCount) || hasThreeOfAKind || hasFlush || hasStraight) {
+		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
-		else if (hasTwoPair && raiseCount) {
+		else if (hasTwoPair) {
 			action = this.checkCall();
 		}
 		else if ((hasOverPair || hasTopPair) && !isPairedBoard) {
