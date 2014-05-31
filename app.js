@@ -717,6 +717,16 @@ Strategy.prototype.checkFold = function () {
 	}
 	return action;
 }
+Strategy.prototype.checkCall = function () {
+	var action = 'allin';
+	if (this.actionsAllowed.indexOf('check') > -1) {
+		action = 'check';
+	}
+	else if (this.actionsAllowed.indexOf('check') > -1) {
+		action = 'call';
+	}
+	return action;
+}
 Strategy.prototype.fold = function () {
 	return 'fold';
 }
@@ -734,7 +744,7 @@ Strategy.prototype.hasFavorablePotOdds = function (outs) {
 	var potSize = this.getPotTotal();
 	var betPotRatio = minimumBet / potSize;
 	var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
-	console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
+	//console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
 	return (breakEvenOdds > betPotRatio);
 }
 function MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
@@ -1013,9 +1023,32 @@ EdMillerStrategy.prototype.playHand = function() {
 			// Maybe should fold if there is paired board or a flush draw?
 			action = this.tryToRaise();
 		}
+		// Flop
+		else if (this.bettingRound == 1 && (hasFlushDraw || hasOpenEndedStraightDraw)) {
+			action = this.tryToRaise();
+		}
+		else if (hasFlushDraw) {
+			if (this.hasFavorablePotOdds(9)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
+		else if (hasOpenEndedStraightDraw) {
+			if (this.hasFavorablePotOdds(8)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
 		else if (hasStraightDraw && !hasOpenEndedStraightDraw) {
-			if (this.hasFavorablePotOdds()) {
-				action = this.tryToCall();
+			if (this.hasFavorablePotOdds(4)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
 			}
 		}
 		else if (this.hand.hasWeakPair() && raiseCount) {
@@ -1023,37 +1056,20 @@ EdMillerStrategy.prototype.playHand = function() {
 			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
 			// Maybe should count a hand paired with the board as 5 outs?
 			// Is a two-pair possibility realy worh 5 outs?
-			action = 'fold';
+			if (this.hasFavorablePotOdds(3)) {
+				action = this.checkCall();
+			}
+			else {
+				action = 'fold';
+			}
+		}
+		else if (this.hand.hasWeakPair()) {
+			action = this.checkCall();
 		}
 		else if (!hasPair) {
 			// do not bet with nothing after the flop.
 			// maybe pot size should be factored in this decision
 			action = this.checkFold();
-		}
-		// Flop
-		else if (this.bettingRound == 1) {
-			if (hasFlushDraw || hasOpenEndedStraightDraw) {
-				action = this.tryToRaise();
-			}
-		}
-		// Turn
-		else if (this.bettingRound == 2) {
-			// we will even bet if turn card is bigger than my pair
-			// maybe should only bet if having second highest pair
-			if (!isPairedBoard && hasPair && this.hasBigPot()) {
-				action = this.tryToRaise();
-			}
-			else if (hasFlushDraw || hasOpenEndedStraightDraw) {
-				action = this.tryToCall();
-			}
-		}
-		// River
-		else if (this.bettingRound == 3) {
-			// might want to check if possible straights exist, 
-			// or if last card is high card
-			if (!isPairedBoard && hasPair && this.hasBigPot()) {
-				action = this.tryToRaise();
-			}
 		}
 	}
 	//console.log('biggest:'+this.getBiggestBetThisRound()+'mybiggest:'+this.getBiggestBetThisRound(this.me)+'min:'+this.getMinimumAllowedBet());
