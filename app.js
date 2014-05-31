@@ -568,14 +568,15 @@ Strategy.prototype.getBiggestBetThisRound = function(player) {
 	}
 	if (this.betting[this.betting.length - 1]) {
 		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			var betAmount = parseInt(this.betting[this.betting.length - 1][i].amount);
 			if (player) {
-				if (this.betting[this.betting.length - 1][i].amount > biggestBet && this.betting[this.betting.length - 1][i].player == this.me.name) {
-					biggestBet = this.betting[this.betting.length - 1][i].amount;
+				if (betAmount > biggestBet && this.betting[this.betting.length - 1][i].player == player.name) {
+					biggestBet = betAmount;
 				}
 			}
 			else {
-				if (this.betting[this.betting.length - 1][i].amount > biggestBet) {
-					biggestBet = this.betting[this.betting.length - 1][i].amount;
+				if (betAmount > biggestBet) {
+					biggestBet = betAmount;
 				}				
 			}
 		}
@@ -587,7 +588,9 @@ Strategy.prototype.getMinimumAllowedBet = function() {
 	var biggestBet = this.getBiggestBetThisRound();
 	if (biggestBet) {
 		var myBiggestBet = this.getBiggestBetThisRound(this.me);
-		minimumBet = biggestBet - myBiggestBet;
+		if (biggestBet > myBiggestBet)  {
+			minimumBet = biggestBet - myBiggestBet;
+		}
 	}
 	return minimumBet;
 }
@@ -726,7 +729,14 @@ Strategy.prototype.isMyFirstBet = function () {
 	}
 	return isMyFirstBet;
 }
-
+Strategy.prototype.hasFavorablePotOdds = function (outs) {
+	var minimumBet = this.getMinimumAllowedBet();
+	var potSize = this.getPotTotal();
+	var betPotRatio = minimumBet / potSize;
+	var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
+	console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
+	return (breakEvenOdds > betPotRatio);
+}
 function MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
 	this.me = me;
 	this.players = players;
@@ -988,7 +998,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
-		// Maybe a flush draw should only be considered when player has a suited connectors pocket.
+		// Maybe a flush draw should only be considered when player has a suited pocket.
 		var hasFlushDraw = this.hand.hasFlushDraw();
 		var hasStraight = this.hand.hasStraight();
 		var hasStraightDraw = this.hand.hasStraightDraw();
@@ -1004,12 +1014,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			action = this.tryToRaise();
 		}
 		else if (hasStraightDraw && !hasOpenEndedStraightDraw) {
-			var minimumBet = this.getMinimumAllowedBet();
-			var outs = 4;
-			var potSize = this.getPotTotal();
-			var betPotRatio = minimumBet / potSize;
-			var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
-			if (breakEvenOdds > betPotRatio) {
+			if (this.hasFavorablePotOdds()) {
 				action = this.tryToCall();
 			}
 		}
