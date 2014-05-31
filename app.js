@@ -739,6 +739,16 @@ Strategy.prototype.checkCall = function () {
 	}
 	return action;
 }
+Strategy.prototype.betCall = function () {
+	var action = 'allin';
+	if (this.actionsAllowed.indexOf('bet') > -1) {
+		action = 'bet';
+	}
+	else if (this.actionsAllowed.indexOf('call') > -1) {
+		action = 'call';
+	}
+	return action;
+}
 Strategy.prototype.fold = function () {
 	return 'fold';
 }
