@@ -104,7 +104,7 @@ app.post('/poker-bot', function(req, res){
 	var hasOverPair = strategy.hand.hasOverPair();
 	var hasStraight = strategy.hand.hasStraight();
 	var hasStraightDraw = strategy.hand.hasStraightDraw();
-	console.log('round'+bettingRound+' $'+strategy.getPotTotal()+' '+playerName+' min bet:'+strategy.getMinimumAllowedBet()+' big pot?:'+strategy.hasBigPot());
+	//console.log('round'+bettingRound+' $'+strategy.getPotTotal()+' '+playerName+' min bet:'+strategy.getMinimumAllowedBet()+' big pot?:'+strategy.hasBigPot());
 	res.send(strategy.playHand());
 });
 
