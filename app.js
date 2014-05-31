@@ -81,17 +81,17 @@ app.post('/poker-bot', function(req, res){
 		bettingRound = objects['community'].childs.length - 2;
 	}
 	switch (playerName) {
-		case 'Bro':
-			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
-			break;
-		case 'MsMamba':
-			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
-			break;
+		// case 'Bro':
+		// 	strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
+		// 	break;
+		// case 'MsMamba':
+		// 	strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
+		// 	break;
 		case 'ShortStack':
 			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
 		default:
-			strategy = new Strategy(me, players, hand, bettingRound, betting, actionsAllowed);	
+			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);	
 	}
 	var hasPair = strategy.hand.hasPair();
 	var hasTwoPair = strategy.hand.hasTwoPair();
@@ -638,6 +638,17 @@ Strategy.prototype.getRaiseCount = function() {
 	}
 	return raiseCount;
 }
+Strategy.prototype.iHaveRaised = function() {
+	var iHaveRaised = false;
+	if (this.betting[this.betting.length - 1]) {
+		for (var i = 0; i < this.betting[this.betting.length - 1].length; i++) {
+			if (this.betting[this.betting.length - 1][i].player.name == this.me.name) {
+				iHaveRaised = true;
+			}
+		}
+	}
+	return iHaveRaised;
+}
 Strategy.prototype.getOtherPlayersRaiseCount = function() {
 	var raiseCount = 0;
 	if (this.betting[this.betting.length - 1]) {
@@ -722,7 +733,7 @@ Strategy.prototype.checkCall = function () {
 	if (this.actionsAllowed.indexOf('check') > -1) {
 		action = 'check';
 	}
-	else if (this.actionsAllowed.indexOf('check') > -1) {
+	else if (this.actionsAllowed.indexOf('call') > -1) {
 		action = 'call';
 	}
 	return action;
@@ -908,7 +919,10 @@ EdMillerStrategy.prototype.playHand = function() {
 		// console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
 		if (raiseCount) {
 			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
-				action = this.tryToCall();
+				action = this.checkCall();
+			}
+			else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && this.iHaveRaised()) {
+				action = this.checkCall();
 			}
 			else if (raiseCount > 1) {
 				if (this.hand.isOneOfPocket(preflopStrategy.raised.againstReRaise.reRaise)) {
@@ -1027,6 +1041,14 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.bettingRound == 1 && (hasFlushDraw || hasOpenEndedStraightDraw)) {
 			action = this.tryToRaise();
 		}
+		else if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
+			console.log('calling because only 1 raise since my last bet');
+			action = this.checkCall();
+		}
+		else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && this.iHaveRaised()) {
+			console.log('calling because I raised earlier this round');
+			action = this.checkCall();
+		}
 		else if (hasFlushDraw) {
 			if (this.hasFavorablePotOdds(9)) {
 				action = this.checkCall();
@@ -1060,7 +1082,7 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.checkCall();
 			}
 			else {
-				action = 'fold';
+				action = this.checkFold;
 			}
 		}
 		else if (this.hand.hasWeakPair()) {
