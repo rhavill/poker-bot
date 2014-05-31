@@ -788,8 +788,9 @@ EdMillerStrategy.prototype.playHand = function() {
 	var raiseCount = this.getOtherPlayersRaiseCount();
 	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
 	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
+	var iHaveRaised = this.iHaveRaised();
 	// var action = this.actionsAllowed[this.actionsAllowed.length-1];
-	var action = this.fold();
+	var action = this.checkFold();
 	var preflopStrategy = {
 		unRaised: {
 			early: {
@@ -921,7 +922,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
 				action = this.checkCall();
 			}
-			else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && this.iHaveRaised()) {
+			else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && iHaveRaised) {
 				action = this.checkCall();
 			}
 			else if (raiseCount > 1) {
@@ -1027,12 +1028,20 @@ EdMillerStrategy.prototype.playHand = function() {
 		var isPairedBoard = this.hand.boardHasPair();
 
 		// maybe should be less aggressive w/ two pair.
-		if (hasTwoPair || hasThreeOfAKind || hasFlush || hasStraight) {
+		if ((hasTwoPair && !raiseCount) || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
-		else if (hasOverPair || hasTopPair) {
+		else if (hasTwoPair && raiseCount) {
+			action = this.checkCall();
+		}
+		else if ((hasOverPair || hasTopPair) && !isPairedBoard) {
 			// Maybe should fold if there is paired board or a flush draw?
-			action = this.tryToRaise();
+			if (raiseCount) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.tryToRaise();
+			}
 		}
 		// Flop
 		else if (this.bettingRound == 1 && (hasFlushDraw || hasOpenEndedStraightDraw)) {
@@ -1042,7 +1051,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			console.log('calling because only 1 raise since my last bet');
 			action = this.checkCall();
 		}
-		else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && this.iHaveRaised()) {
+		else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && iHaveRaised) {
 			console.log('calling because I raised earlier this round');
 			action = this.checkCall();
 		}
@@ -1094,3 +1103,6 @@ EdMillerStrategy.prototype.playHand = function() {
 	//console.log('biggest:'+this.getBiggestBetThisRound()+'mybiggest:'+this.getBiggestBetThisRound(this.me)+'min:'+this.getMinimumAllowedBet());
 	return action;
 }
+
+// todo:  do not raise with top pair on board
+// avoid raise wars
