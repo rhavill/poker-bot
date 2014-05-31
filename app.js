@@ -750,7 +750,7 @@ Strategy.prototype.isMyFirstBet = function () {
 	}
 	return isMyFirstBet;
 }
-Strategy.prototype.hasFavorablePotOdds = function (outs) {
+Strategy.prototype.hasFavorablePotOdds = function (potOdds, outs) {
 	var minimumBet = this.getMinimumAllowedBet();
 	var potSize = this.getPotTotal();
 	var betPotRatio = minimumBet / potSize;
@@ -1047,7 +1047,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			action = this.checkCall();
 		}
 		else if (hasFlushDraw) {
-			if (this.hasFavorablePotOdds(9)) {
+			if (this.hasFavorablePotOdds(potOdds, 9)) {
 				action = this.checkCall();
 			}
 			else {
@@ -1055,7 +1055,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 		else if (hasOpenEndedStraightDraw) {
-			if (this.hasFavorablePotOdds(8)) {
+			if (this.hasFavorablePotOdds(potOdds, 8)) {
 				action = this.checkCall();
 			}
 			else {
@@ -1063,7 +1063,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 		else if (hasStraightDraw && !hasOpenEndedStraightDraw) {
-			if (this.hasFavorablePotOdds(4)) {
+			if (this.hasFavorablePotOdds(potOdds, 4)) {
 				action = this.checkCall();
 			}
 			else {
@@ -1075,7 +1075,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
 			// Maybe should count a hand paired with the board as 5 outs?
 			// Is a two-pair possibility realy worh 5 outs?
-			if (this.hasFavorablePotOdds(3)) {
+			if (this.hasFavorablePotOdds(potOdds, 3)) {
 				action = this.checkCall();
 			}
 			else {
