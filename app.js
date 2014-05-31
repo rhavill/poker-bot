@@ -1032,6 +1032,9 @@ EdMillerStrategy.prototype.playHand = function() {
 		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
+		else if (hasTwoPair && hasOverPair) {
+			action = this.tryToRaise();
+		}
 		else if (hasTwoPair) {
 			action = this.checkCall();
 		}
