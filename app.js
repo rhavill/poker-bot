@@ -183,7 +183,7 @@ Hand.prototype.getSecondHighestBoardRank = function() {
 	var secondHighestRank = '2';
 	for (var i=2; i < this.cards.length; i++) {
 		if (this.ranks.indexOf(this.cards[i].rank) > this.ranks.indexOf(secondHighestRank) && 
-			this.ranks.indexOf(this.cards[i].rank) < this.ranks.indexOf(highestRank) {
+			this.ranks.indexOf(this.cards[i].rank) < this.ranks.indexOf(highestRank)) {
 			secondHighestRank = this.cards[i].rank;
 		}
 	}
