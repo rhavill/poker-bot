@@ -176,8 +176,8 @@ Hand.prototype.getHighestBoardRank = function() {
 Hand.prototype.pocketHasHighestRank = function () {
 	var pocketHasHighestRank = false;
 	var highestBoardRank = this.getHighestBoardRank();
-	if (this.ranks.indexOf(this.cards.[0].rank) > this.ranks.indexOf(highestBoardRank) ||
-		this.ranks.indexOf(this.cards.[0].rank) > this.ranks.indexOf(highestBoardRank)) {
+	if (this.ranks.indexOf(this.cards[0].rank) > this.ranks.indexOf(highestBoardRank) ||
+		this.ranks.indexOf(this.cards[1].rank) > this.ranks.indexOf(highestBoardRank)) {
 		pocketHasHighestRank = true;
 	}
 	return pocketHasHighestRank;
@@ -1109,13 +1109,13 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (hasFlush) {
 			action = this.checkCall();
 		}
-		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount ) {
+		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount && pocketHasHighestRank) {
 			action = this.tryToRaise();
 		}
 		else if (hasTwoPair) {
 			action = this.checkCall();
 		}
-		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestRank) {
+		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestRank)) {
 			// Maybe should fold if there is paired board or a flush draw?
 			if (raiseCount) {
 				action = this.checkCall();
