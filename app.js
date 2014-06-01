@@ -1074,7 +1074,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasFlush || hasStraight) {
 			action = this.tryToRaise();
 		}
-		else if (hasTwoPair && (hasOverPair || hasTopPair)) {
+		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount ) {
 			action = this.tryToRaise();
 		}
 		else if (hasTwoPair) {
@@ -1091,7 +1091,12 @@ EdMillerStrategy.prototype.playHand = function() {
 		}
 		// Flop
 		else if (this.bettingRound == 1 && (hasFlushDraw || hasOpenEndedStraightDraw)) {
-			action = this.tryToRaise();
+			if (hasFlushDraw && raiseCount) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.tryToRaise();
+			}
 		}
 		else if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
 			console.log('calling because only 1 raise since my last bet');
