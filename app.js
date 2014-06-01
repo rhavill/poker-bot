@@ -316,6 +316,16 @@ Hand.prototype.hasFlush = function() {
 	}
 	return hasFlush;
 }
+Hand.prototype.hasSolidFlush = function() {
+	// Maybe should check if suited pocket has same suit as other flush cards
+	var hasSolidFlush = false;
+	if (this.hasFlush()) {
+		if (this.isSuitedPocket()) {
+			hasSolidFlush = true;
+		}
+	}
+	return hasSolidFlush;
+}
 Hand.prototype.hasFlushDraw = function() {
 	var hasFlushDraw = false;
 	var suitCounts = this.getSuitCounts();
@@ -328,6 +338,16 @@ Hand.prototype.hasFlushDraw = function() {
 		}
 	}
 	return hasFlushDraw;
+}
+Hand.prototype.hasSolidFlushDraw = function() {
+	// Maybe should check if suited pocket has same suit as other flush cards
+	var hasSolidFlushDraw = false;
+	if (this.hasFlushDraw()) {
+		if (this.isSuitedPocket()) {
+			hasSolidFlushDraw = true;
+		}
+	}
+	return hasSolidFlushDraw;
 }
 Hand.prototype.hasFullHouse = function() {
 	var hasFullHouse = false;
@@ -1063,16 +1083,21 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
 		var hasFlush = this.hand.hasFlush();
+		var hasSolidFlush = this.hand.hasSolidFlush();
 		// Maybe a flush draw should only be considered when player has a suited pocket.
 		var hasFlushDraw = this.hand.hasFlushDraw();
+		var hasSolidFlushDraw = this.hand.hasSolidFlushDraw();
 		var hasStraight = this.hand.hasStraight();
 		var hasStraightDraw = this.hand.hasStraightDraw();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		var isPairedBoard = this.hand.boardHasPair();
 
 		// maybe should be less aggressive w/ two pair.
-		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasFlush || hasStraight) {
+		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasSolidFlush || hasStraight) {
 			action = this.tryToRaise();
+		}
+		else if (hasFlush) {
+			action = this.checkCall();
 		}
 		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount ) {
 			action = this.tryToRaise();
@@ -1081,6 +1106,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			action = this.checkCall();
 		}
 		else if ((hasOverPair || hasTopPair) && !isPairedBoard) {
+			// really should check if  the pair on the board is bigger or smaller than my top/over pair
 			// Maybe should fold if there is paired board or a flush draw?
 			if (raiseCount) {
 				action = this.checkCall();
@@ -1091,7 +1117,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		}
 		// Flop
 		else if (this.bettingRound == 1 && (hasFlushDraw || hasOpenEndedStraightDraw)) {
-			if (hasFlushDraw && raiseCount) {
+			if (hasFlushDraw && (raiseCount || !hasSolidFlushDraw)) {
 				action = this.checkCall();
 			}
 			else {
