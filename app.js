@@ -173,6 +173,22 @@ Hand.prototype.getHighestBoardRank = function() {
 	}
 	return highestRank;
 }
+Hand.prototype.getSecondHighestBoardRank = function() {
+	var highestRank = '2';
+	for (var i=2; i < this.cards.length; i++) {
+		if (this.ranks.indexOf(this.cards[i].rank) > this.ranks.indexOf(highestRank)) {
+			highestRank = this.cards[i].rank;
+		}
+	}
+	var secondHighestRank = '2';
+	for (var i=2; i < this.cards.length; i++) {
+		if (this.ranks.indexOf(this.cards[i].rank) > this.ranks.indexOf(secondHighestRank) && 
+			this.ranks.indexOf(this.cards[i].rank) < this.ranks.indexOf(highestRank) {
+			secondHighestRank = this.cards[i].rank;
+		}
+	}
+	return secondHighestRank;
+}
 Hand.prototype.hasCardWithRank = function(rank) {
 	var hasCardWithRank = false;
 	for (var i=0; i < this.cards.length; i++) {
@@ -253,6 +269,20 @@ Hand.prototype.hasTopPair = function() {
 		}
 	}
 	return hasTopPair;
+}
+Hand.prototype.hasDecentPair = function() {
+	var hasDecentPair = false;
+	var secondHighestRank = this.getSecondHighestBoardRank();
+	if (this.hand[0].rank == secondHighestRank || this.hand[1].rank == secondHighestRank) {
+		var rankCounts = this.getRankCounts();
+		for (var rank in rankCounts) {
+			if (rankCounts[rank] > 1 && rank == secondHighestRank) {
+				hasDecentPair = true;
+				break;
+			}
+		}
+	}
+	return hasDecentPair;
 }
 Hand.prototype.hasTwoPair = function() {
 	var pairCount = 0;
@@ -762,6 +792,8 @@ Strategy.prototype.isMyFirstBet = function () {
 	return isMyFirstBet;
 }
 Strategy.prototype.hasFavorablePotOdds = function (potOdds, outs) {
+	// increase outs to add some sort of implied odds
+	outs++;
 	var minimumBet = this.getMinimumAllowedBet();
 	var potSize = this.getPotTotal();
 	var betPotRatio = minimumBet / potSize;
