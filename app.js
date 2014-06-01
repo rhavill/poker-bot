@@ -273,7 +273,7 @@ Hand.prototype.hasTopPair = function() {
 Hand.prototype.hasDecentPair = function() {
 	var hasDecentPair = false;
 	var secondHighestRank = this.getSecondHighestBoardRank();
-	if (this.hand[0].rank == secondHighestRank || this.hand[1].rank == secondHighestRank) {
+	if (this.cards[0].rank == secondHighestRank || this.cards[1].rank == secondHighestRank) {
 		var rankCounts = this.getRankCounts();
 		for (var rank in rankCounts) {
 			if (rankCounts[rank] > 1 && rank == secondHighestRank) {
@@ -1100,6 +1100,16 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && iHaveRaised) {
 			console.log('calling because I raised earlier this round');
 			action = this.checkCall();
+		}
+		else if (this.hand.hasDecentPair() && raiseCount) {
+			// Fold a weak pair after raise.
+			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
+			if (this.hasFavorablePotOdds(potOdds, 3)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold;
+			}
 		}
 		else if (hasFlushDraw) {
 			if (this.hasFavorablePotOdds(potOdds, 9)) {
