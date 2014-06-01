@@ -173,6 +173,15 @@ Hand.prototype.getHighestBoardRank = function() {
 	}
 	return highestRank;
 }
+Hand.prototype.pocketHasHighestRank = function () {
+	var pocketHasHighestRank = false;
+	var highestBoardRank = this.getHighestBoardRank();
+	if (this.ranks.indexOf(this.cards.[0].rank) > this.ranks.indexOf(highestBoardRank) ||
+		this.ranks.indexOf(this.cards.[0].rank) > this.ranks.indexOf(highestBoardRank)) {
+		pocketHasHighestRank = true;
+	}
+	return pocketHasHighestRank;
+}
 Hand.prototype.getSecondHighestBoardRank = function() {
 	var highestRank = '2';
 	for (var i=2; i < this.cards.length; i++) {
@@ -1091,6 +1100,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasStraightDraw = this.hand.hasStraightDraw();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		var isPairedBoard = this.hand.boardHasPair();
+		var pocketHasHighestRank = this.hand.pocketHasHighestRank();
 
 		// maybe should be less aggressive w/ two pair.
 		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasSolidFlush || hasStraight) {
@@ -1105,8 +1115,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (hasTwoPair) {
 			action = this.checkCall();
 		}
-		else if ((hasOverPair || hasTopPair) && !isPairedBoard) {
-			// really should check if  the pair on the board is bigger or smaller than my top/over pair
+		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestRank) {
 			// Maybe should fold if there is paired board or a flush draw?
 			if (raiseCount) {
 				action = this.checkCall();
