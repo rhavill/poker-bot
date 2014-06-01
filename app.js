@@ -173,14 +173,21 @@ Hand.prototype.getHighestBoardRank = function() {
 	}
 	return highestRank;
 }
-Hand.prototype.pocketHasHighestRank = function () {
-	var pocketHasHighestRank = false;
-	var highestBoardRank = this.getHighestBoardRank();
-	if (this.ranks.indexOf(this.cards[0].rank) > this.ranks.indexOf(highestBoardRank) ||
-		this.ranks.indexOf(this.cards[1].rank) > this.ranks.indexOf(highestBoardRank)) {
-		pocketHasHighestRank = true;
+Hand.prototype.pocketHasHighestPairedRank = function () {
+	var pocketHasHighestPairedRank = false;
+	if (this.hasPair()) {
+		var highestRank = '2';
+		var rankCounts = this.getRankCounts();
+		for (var rank in rankCounts) {
+			if (rankCounts[rank] == 2 && this.ranks.indexOf(rank) > this.ranks.indexOf(highestRank)) {
+				highestRank = rank;
+			}
+		}		
+		if (this.cards[0].rank == highestRank || this.cards[1].rank == highestRank) {
+			pocketHasHighestPairedRank = true;
+		}
 	}
-	return pocketHasHighestRank;
+	return pocketHasHighestPairedRank;
 }
 Hand.prototype.getSecondHighestBoardRank = function() {
 	var highestRank = '2';
@@ -1100,7 +1107,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasStraightDraw = this.hand.hasStraightDraw();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		var isPairedBoard = this.hand.boardHasPair();
-		var pocketHasHighestRank = this.hand.pocketHasHighestRank();
+		var pocketHasHighestPairedRank = this.hand.pocketHasHighestPairedRank();
 
 		// maybe should be less aggressive w/ two pair.
 		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasSolidFlush || hasStraight) {
@@ -1109,14 +1116,15 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (hasFlush) {
 			action = this.checkCall();
 		}
-		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount && pocketHasHighestRank) {
+		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount && pocketHasHighestPairedRank) {
 			action = this.tryToRaise();
 		}
 		else if (hasTwoPair) {
 			action = this.checkCall();
 		}
-		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestRank)) {
+		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestPairedRank)) {
 			// Maybe should fold if there is paired board or a flush draw?
+			console.log('i got the big card');
 			if (raiseCount) {
 				action = this.checkCall();
 			}
