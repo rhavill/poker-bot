@@ -1108,8 +1108,12 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.checkCall();
 			}
 			else {
-				action = this.checkFold;
+				action = this.checkFold();
 			}
+		}
+		// else if (this.hand.hasDecentPair() && !isPairedBoard) {
+		else if (this.hand.hasDecentPair()) {
+			action = this.checkCall();
 		}
 		else if (hasFlushDraw) {
 			if (this.hasFavorablePotOdds(potOdds, 9)) {
@@ -1135,7 +1139,7 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.checkFold();
 			}
 		}
-		else if (this.hand.hasWeakPair() && raiseCount) {
+		else if (this.hand.hasWeakPair()) {
 			// Fold a weak pair after raise.
 			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
 			// Maybe should count a hand paired with the board as 5 outs?
@@ -1144,11 +1148,11 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.checkCall();
 			}
 			else {
-				action = this.checkFold;
+				action = this.checkFold();
 			}
 		}
-		else if (this.hand.hasWeakPair() && !isPairedBoard) {
-			action = this.checkCall();
+		else if (this.hand.hasWeakPair()) {
+			action = this.checkFold();
 		}
 		else if (!hasPair) {
 			// do not bet with nothing after the flop.
