@@ -581,18 +581,18 @@ Hand.prototype.isOneOfPocket = function(pairs) {
 
 function PotOdds() {
 }
-PotOdds.prototype.getBreakEvenOdds = function(outs, returnAsRatio) {
-	var oddsForOuts = ['', 45, 22, 14.3, 10.5, 8.2, 6.7, 5.6, 4.75, 4.1];
-	var odds = 0;
-	if (outs && outs < 10) {
-		odds = oddsForOuts[outs];
-		if (!returnAsRatio) {
-			// return as a percentage
-			odds = 1 / (odds + 1);
+PotOdds.prototype.getBreakEvenOdds = function(outs, toOneOdds) {
+	var toOneOddsForOuts = [undefined, 45.0, 22.0, 14.333, 10.5, 8.2, 6.667, 5.571, 4.75, 4.111, 3.6, 3.182, 2.833, 2.538];
+	var oddsForOuts = [undefined, .0218, .0435, .0652, .0867, .1087, .1304, .1522, .1739, .1957, .2174, .2391, .2609, .2826];
+	var odds = undefined;
+	if (outs && outs < 13) {
+		if (toOneOdds) {
+			return toOneOddsForOuts[outs];
 		}
-
+		else {
+			return oddsForOuts[outs];
+		}
 	}
-	return odds;
 }
 
 function Bet(player, type, amount) {
@@ -837,7 +837,7 @@ Strategy.prototype.hasFavorablePotOdds = function (potOdds, outs) {
 	var potSize = this.getPotTotal();
 	var betPotRatio = minimumBet / potSize;
 	var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
-	//console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
+	console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
 	return (breakEvenOdds > betPotRatio);
 }
 function MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
