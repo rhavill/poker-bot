@@ -289,7 +289,10 @@ Hand.prototype.hasTopPair = function() {
 Hand.prototype.hasDecentPair = function() {
 	var hasDecentPair = false;
 	var secondHighestRank = this.getSecondHighestBoardRank();
-	if (this.cards[0].rank == secondHighestRank || this.cards[1].rank == secondHighestRank) {
+	if (this.hasPairedPocket() && this.cards[0].rank >= secondHighestRank) {
+		hasDecentPair = true;
+	}
+	else if (this.cards[0].rank >= secondHighestRank || this.cards[1].rank >= secondHighestRank) {
 		var rankCounts = this.getRankCounts();
 		for (var rank in rankCounts) {
 			if (rankCounts[rank] > 1 && rank == secondHighestRank) {
@@ -1095,6 +1098,7 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasOverPair = this.hand.hasOverPair();
 		var hasTwoPair = this.hand.hasTwoPair();
 		var hasTopPair = this.hand.hasTopPair();
+		var hasDecentPair = this.hand.hasDecentPair();
 		var hasThreeOfAKind = this.hand.hasThreeOfAKind();
 		var hasFullHouse = this.hand.hasFullHouse();
 		var hasFourOfAKind = this.hand.hasFourOfAKind();
@@ -1107,8 +1111,8 @@ EdMillerStrategy.prototype.playHand = function() {
 		var hasStraightDraw = this.hand.hasStraightDraw();
 		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
 		var isPairedBoard = this.hand.boardHasPair();
+		var hasPairedPocket = this.hand.hasPairedPocket();
 		var pocketHasHighestPairedRank = this.hand.pocketHasHighestPairedRank();
-
 		// maybe should be less aggressive w/ two pair.
 		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasSolidFlush || hasStraight) {
 			action = this.tryToRaise();
@@ -1119,12 +1123,14 @@ EdMillerStrategy.prototype.playHand = function() {
 		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount && pocketHasHighestPairedRank) {
 			action = this.tryToRaise();
 		}
+		else if (hasTwoPair && hasDecentPair && hasPairedPocket) {
+			action = this.betCall();
+		}
 		else if (hasTwoPair) {
 			action = this.checkCall();
 		}
 		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestPairedRank)) {
 			// Maybe should fold if there is paired board or a flush draw?
-			console.log('i got the big card');
 			if (raiseCount) {
 				action = this.checkCall();
 			}
@@ -1149,7 +1155,7 @@ EdMillerStrategy.prototype.playHand = function() {
 			console.log('calling because I raised earlier this round');
 			action = this.checkCall();
 		}
-		else if (this.hand.hasDecentPair() && raiseCount) {
+		else if (hasDecentPair && raiseCount) {
 			// Fold a weak pair after raise.
 			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
 			if (this.hasFavorablePotOdds(potOdds, 3)) {
@@ -1159,8 +1165,8 @@ EdMillerStrategy.prototype.playHand = function() {
 				action = this.checkFold();
 			}
 		}
-		// else if (this.hand.hasDecentPair() && !isPairedBoard) {
-		else if (this.hand.hasDecentPair()) {
+		// else if (hasDecentPair && !isPairedBoard) {
+		else if (hasDecentPair) {
 			action = this.checkCall();
 		}
 		else if (hasFlushDraw) {
