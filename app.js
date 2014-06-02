@@ -20,14 +20,14 @@ app.post('/poker-bot', function(req, res){
 	var buttonIndex = null;
 	var bettingRound = 0;
 
-	if (playerName == 'ShortStack' || playerName == 'shortstack') {
-		var d = new Date();
-		var fileName = d.getTime().toString();
-		fs.open('/tmp/'+fileName+'.log.txt','a', 0666, function(err, fd) {
-			fs.write(fd, gameState+"\n\n");
-			fs.close(fd);
-		});		
-	}
+	// if (playerName == 'shortstack') {
+	// 	var d = new Date();
+	// 	var fileName = d.getTime().toString();
+	// 	fs.open('/tmp/'+fileName+'.log.txt','a', 0666, function(err, fd) {
+	// 		fs.write(fd, gameState+"\n\n");
+	// 		fs.close(fd);
+	// 	});		
+	// }
 	
 	for (var i=0; i < stateObject.childs.length; i++) {
 		objects[stateObject.childs[i].name] = stateObject.childs[i];
@@ -84,10 +84,10 @@ app.post('/poker-bot', function(req, res){
 		// case 'Bro':
 		// 	strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 		// 	break;
-		// case 'MsMamba':
+		// case 'msmamba':
 		// 	strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 		// 	break;
-		case 'ShortStack':
+		case 'shortstack':
 			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
 		default:
@@ -837,7 +837,7 @@ Strategy.prototype.hasFavorablePotOdds = function (potOdds, outs) {
 	var potSize = this.getPotTotal();
 	var betPotRatio = minimumBet / potSize;
 	var breakEvenOdds = potOdds.getBreakEvenOdds(outs);
-	console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
+	// console.log('favorable odds? minbet '+minimumBet+' pot '+potSize+' bet:pot '+betPotRatio+' outs '+outs+' breakEvenOdds '+breakEvenOdds+' favorable? '+(breakEvenOdds > betPotRatio));
 	return (breakEvenOdds > betPotRatio);
 }
 function MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
@@ -1148,11 +1148,11 @@ EdMillerStrategy.prototype.playHand = function() {
 			}
 		}
 		else if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
-			console.log('calling because only 1 raise since my last bet');
+			// console.log('calling because only 1 raise since my last bet');
 			action = this.checkCall();
 		}
 		else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && iHaveRaised) {
-			console.log('calling because I raised earlier this round');
+			// console.log('calling because I raised earlier this round');
 			action = this.checkCall();
 		}
 		else if (hasDecentPair && raiseCount) {
