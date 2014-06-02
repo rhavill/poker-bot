@@ -20,7 +20,7 @@ app.post('/poker-bot', function(req, res){
 	var buttonIndex = null;
 	var bettingRound = 0;
 
-	if (playerName == 'ShortStack') {
+	if (playerName == 'ShortStack' || playerName == 'shortstack') {
 		var d = new Date();
 		var fileName = d.getTime().toString();
 		fs.open('/tmp/'+fileName+'.log.txt','a', 0666, function(err, fd) {
