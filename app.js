@@ -88,7 +88,7 @@ app.post('/poker-bot', function(req, res){
 			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
 		case 'shortstack':
-			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
+			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
 		default:
 			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);	
