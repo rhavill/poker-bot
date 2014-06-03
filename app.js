@@ -84,9 +84,9 @@ app.post('/poker-bot', function(req, res){
 		// case 'Bro':
 		// 	strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 		// 	break;
-		// case 'msmamba':
-		// 	strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
-		// 	break;
+		case 'msmamba':
+			strategy = new MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
+			break;
 		case 'shortstack':
 			strategy = new EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed);
 			break;
@@ -850,7 +850,377 @@ function MambaStrategy(me, players, hand, bettingRound, betting, actionsAllowed)
 }
 MambaStrategy.prototype = Object.create(Strategy.prototype);
 MambaStrategy.prototype.playHand = function() {
-	return this.actionsAllowed[this.actionsAllowed.length-1];
+	//return this.actionsAllowed[this.actionsAllowed.length-1];
+
+	var potOdds = new PotOdds();
+
+	var raiseCount = this.getOtherPlayersRaiseCount();
+	var raiseOccurredAfterMe = this.raiseOccurredAfterMe();
+	var raiseCountSinceMyFirstBet = this.raiseCountSinceMyFirstBet();
+	var iHaveRaised = this.iHaveRaised();
+	// var action = this.actionsAllowed[this.actionsAllowed.length-1];
+	var action = this.checkFold();
+	var preflopStrategy = {
+		unRaised: {
+			early: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT',
+					'AKs','AQs','AJs','ATs',
+					'KQs',
+					'AK','AQ'
+				],
+				callHands: [
+					'99','88','77',
+					'KJs',
+					'QJs',
+					'AJ',
+					'KQ'
+				]
+			},
+			middle: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99',
+					'AKs','AQs','AJs','ATs',
+					'KQs','KJs',
+					'AK','AQ','AJ',
+					'KQ'
+				],
+				callHands: [
+					'88','77','66','55','44','33','22',
+					'A9s','A8s','A7s',
+					'KTs',
+					'QJs','QTs',
+					'JTs',
+					'AT',
+					'KJ'
+				]
+			},
+			late: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99','88',
+					'AKs','AQs','AJs','ATs','A9s','A8s',
+					'KQs','KJs','KTs',
+					'QJs',
+					'AK','AQ','AJ','AT',
+					'KQ','KJ'
+				],
+				callHands: [
+					'77','66','55','44','33','22',
+					'A7s','A6s','A5s','A4s','A3s','A2s',
+					'K9s',
+					'QTs','Q9s',
+					'JTs','T9s','98s','87s',
+					'J9s','T8s'
+				]
+			},
+			bigBlind: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99',
+					'AKs','AQs','AJs','ATs',
+					'KQs','KJs',
+					'AK','AQ','AJ',
+					'KQ'
+				],
+				checkHands: ['*']
+			},
+			smallBlind: {
+				raiseHands: [
+					'AA','KK','QQ','JJ','TT','99',
+					'AKs','AQs','AJs','ATs',
+					'KQs','KJs',
+					'AK','AQ','AJ',
+					'KQ'
+				],
+				callHands: [
+					'88','77','66','55','44','33','22',
+					'A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+					'KTs','K9s','K8s',
+					'QJs','QTs','Q9s','Q8s',
+					'JTs','T9s','98s','87s','76s','65s','54s',
+					'J9s','T8s',
+					'AT',
+					'KJ'
+				]
+			}
+		},
+		raised: {
+			// Against a raise from the big blind.
+			bigBlind: {
+				reRaise: [
+					'AA','KK','QQ','JJ',
+					'AKs','AQs',
+					'AK'
+				],
+				call: [
+					'TT','99','88','77','66','55','44','33','22',
+					'AJs','ATs','A9s','A8s','A7s','A6s','A5s','A4s','A3s','A2s',
+					'KQs','KJs','KTs','K9s',
+					'QJs','QTs','Q9s',
+					'JTs','T9s','98s','87s',
+					'J9s','T8s',
+					'AQ'
+				]
+
+			},
+			// Against a raise in front of you from non-big blind.
+			againstRaise: {
+				reRaise: [
+					'AA','KK','QQ','JJ','TT',
+					'AKs','AQs','AJs',
+					'KQs',
+					'AK'
+				],
+				fold: ['*']
+			},
+			// Against re-raise from any position.
+			againstReRaise: {
+				reRaise: [
+					'AA','KK','QQ',
+					'AKs'
+				],
+				fold: ['*']
+			}
+
+		}
+	};
+	// possible actions: raise, bet, fold, call, check and allin
+	// If this is the pre-flop betting round:
+	if (this.bettingRound == 0) {
+		// console.log('count:'+raiseCount+' after:'+raiseOccurredAfterMe+' sincefirst:'+raiseCountSinceMyFirstBet);
+		if (raiseCount > 1) {
+			if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
+				action = this.checkCall();
+			}
+			else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && iHaveRaised) {
+				action = this.checkCall();
+			}
+			else if (raiseCount > 1) {
+				if (this.hand.isOneOfPocket(preflopStrategy.raised.againstReRaise.reRaise)) {
+					action = this.tryToRaise();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+			else {
+				if (this.me.isBigBlind()) {
+					if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.reRaise)) {
+						action = this.tryToRaise();
+					}
+					else if (this.hand.isOneOfPocket(preflopStrategy.raised.bigBlind.call)) {
+						action = this.tryToCall();
+					}
+					else {
+						action = this.fold();
+					}
+				}
+				else {
+					if (this.hand.isOneOfPocket(preflopStrategy.raised.againstRaise.reRaise)) {
+						action = this.tryToRaise();
+					}
+					else {
+						action = this.fold();
+					}
+				}
+			}
+		}
+		else {
+			if (this.me.isSmallBlind()) {
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.callHands)) {
+					action = this.tryToCall();
+				}
+				else if (this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+					action = this.checkCall();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+			else if (this.me.isBigBlind()) {
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+					action = this.checkCall();
+				}
+				else if (!raiseCount) {
+					action = this.checkCall();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+			else if (this.me.hasEarlyPosition()) {
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.early.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.early.callHands)) {
+					action = this.tryToCall();
+				}
+				else if (this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+					action = this.checkCall();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+			else if (this.me.hasMidPosition()) {
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.middle.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.middle.callHands)) {
+					action = this.tryToCall();
+				}
+				else if (this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+					action = this.checkCall();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+			else if (this.me.hasLatePosition()) {
+				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.late.raiseHands)) {
+					action = this.tryToRaise();
+				}
+				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.late.callHands)) {
+					action = this.tryToCall();
+				}
+				else if (this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+					action = this.checkCall();
+				}
+				else {
+					action = this.fold();
+				}
+			}
+		}
+	}
+	// post-flop betting rounds
+	else {
+		var hasPair = this.hand.hasPair();
+		var hasOverPair = this.hand.hasOverPair();
+		var hasTwoPair = this.hand.hasTwoPair();
+		var hasTopPair = this.hand.hasTopPair();
+		var hasDecentPair = this.hand.hasDecentPair();
+		var hasThreeOfAKind = this.hand.hasThreeOfAKind();
+		var hasFullHouse = this.hand.hasFullHouse();
+		var hasFourOfAKind = this.hand.hasFourOfAKind();
+		var hasFlush = this.hand.hasFlush();
+		var hasSolidFlush = this.hand.hasSolidFlush();
+		// Maybe a flush draw should only be considered when player has a suited pocket.
+		var hasFlushDraw = this.hand.hasFlushDraw();
+		var hasSolidFlushDraw = this.hand.hasSolidFlushDraw();
+		var hasStraight = this.hand.hasStraight();
+		var hasStraightDraw = this.hand.hasStraightDraw();
+		var hasOpenEndedStraightDraw = this.hand.hasOpenEndedStraightDraw();
+		var isPairedBoard = this.hand.boardHasPair();
+		var hasPairedPocket = this.hand.hasPairedPocket();
+		var pocketHasHighestPairedRank = this.hand.pocketHasHighestPairedRank();
+		// maybe should be less aggressive w/ two pair.
+		if ((hasTwoPair && !raiseCount && !isPairedBoard) || hasThreeOfAKind || hasSolidFlush || hasStraight) {
+			action = this.tryToRaise();
+		}
+		else if (hasFlush) {
+			action = this.checkCall();
+		}
+		else if (hasTwoPair && (hasOverPair || hasTopPair) && !raiseCount && pocketHasHighestPairedRank) {
+			action = this.tryToRaise();
+		}
+		else if (hasTwoPair && hasDecentPair && hasPairedPocket) {
+			action = this.betCall();
+		}
+		else if (hasTwoPair) {
+			action = this.checkCall();
+		}
+		else if ((hasOverPair || hasTopPair) && (!isPairedBoard || pocketHasHighestPairedRank)) {
+			// Maybe should fold if there is paired board or a flush draw?
+			if (raiseCount) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.tryToRaise();
+			}
+		}
+		// Flop
+		else if (this.bettingRound == 1 && (hasFlushDraw || hasOpenEndedStraightDraw)) {
+			if (hasFlushDraw && (raiseCount || !hasSolidFlushDraw)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.tryToRaise();
+			}
+		}
+		else if (this.raiseCountSinceMyFirstBet() == 1 && !this.isMyFirstBet()) {
+			// console.log('calling because only 1 raise since my last bet');
+			action = this.checkCall();
+		}
+		else if (this.raiseCountSinceMyFirstBet() > 1 && !this.isMyFirstBet() && iHaveRaised) {
+			// console.log('calling because I raised earlier this round');
+			action = this.checkCall();
+		}
+		else if (hasDecentPair && raiseCount) {
+			// Fold a weak pair after raise.
+			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
+			if (this.hasFavorablePotOdds(potOdds, 3)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
+		// else if (hasDecentPair && !isPairedBoard) {
+		else if (hasDecentPair) {
+			action = this.checkCall();
+		}
+		else if (hasFlushDraw) {
+			if (this.hasFavorablePotOdds(potOdds, 9)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
+		else if (hasOpenEndedStraightDraw) {
+			if (this.hasFavorablePotOdds(potOdds, 8)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
+		else if (hasStraightDraw && !hasOpenEndedStraightDraw) {
+			if (this.hasFavorablePotOdds(potOdds, 4)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
+		else if (this.hand.hasWeakPair()) {
+			// Fold a weak pair after raise.
+			// Maybe should check for extremely big pot size. (favorable for a 2-3 out hand)
+			// Maybe should count a hand paired with the board as 5 outs?
+			// Is a two-pair possibility realy worh 5 outs?
+			if (this.hasFavorablePotOdds(potOdds, 3)) {
+				action = this.checkCall();
+			}
+			else {
+				action = this.checkFold();
+			}
+		}
+		else if (this.hand.hasWeakPair()) {
+			action = this.checkFold();
+		}
+		else if (!hasPair) {
+			// do not bet with nothing after the flop.
+			// maybe pot size should be factored in this decision
+			action = this.checkFold();
+		}
+	}
+	//console.log('biggest:'+this.getBiggestBetThisRound()+'mybiggest:'+this.getBiggestBetThisRound(this.me)+'min:'+this.getMinimumAllowedBet());
+	return action;
 }
 
 function EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllowed) {
@@ -863,7 +1233,6 @@ function EdMillerStrategy(me, players, hand, bettingRound, betting, actionsAllow
 }
 EdMillerStrategy.prototype = Object.create(Strategy.prototype);
 EdMillerStrategy.prototype.playHand = function() {
-
 
 	var potOdds = new PotOdds();
 
