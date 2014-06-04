@@ -761,6 +761,15 @@ Strategy.prototype.raiseCountSinceMyFirstBet = function () {
 	}
 	return count;
 }
+Strategy.prototype.playerIsPlaying = function(playerName) {
+	isPlaying = false;
+	for (var i = 0; i < this.players.length; i++) {
+		if (this.players[i].name == playerName) {
+			isPlaying = true;
+		}
+	}
+	return isPlaying;
+}
 // possible actions: raise, bet, fold, call, check and allin
 Strategy.prototype.tryToRaise = function() {
 	var action = 'check';
@@ -1032,7 +1041,7 @@ MambaStrategy.prototype.playHand = function() {
 				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.smallBlind.callHands)) {
 					action = this.tryToCall();
 				}
-				else if (true || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+				else if (!(this.playerIsPlaying('gaer')) || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
 					action = this.checkCall();
 				}
 				else {
@@ -1043,7 +1052,7 @@ MambaStrategy.prototype.playHand = function() {
 				if (this.hand.isOneOfPocket(preflopStrategy.unRaised.bigBlind.raiseHands)) {
 					action = this.tryToRaise();
 				}
-				else if (true || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+				else if (!(this.playerIsPlaying('gaer')) || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
 					action = this.checkCall();
 				}
 				else if (!raiseCount) {
@@ -1060,7 +1069,7 @@ MambaStrategy.prototype.playHand = function() {
 				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.early.callHands)) {
 					action = this.tryToCall();
 				}
-				else if (true || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+				else if (!(this.playerIsPlaying('gaer')) || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
 					action = this.checkCall();
 				}
 				else {
@@ -1074,7 +1083,7 @@ MambaStrategy.prototype.playHand = function() {
 				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.middle.callHands)) {
 					action = this.tryToCall();
 				}
-				else if (true || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+				else if (!(this.playerIsPlaying('gaer')) || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
 					action = this.checkCall();
 				}
 				else {
@@ -1088,7 +1097,7 @@ MambaStrategy.prototype.playHand = function() {
 				else if (this.hand.isOneOfPocket(preflopStrategy.unRaised.late.callHands)) {
 					action = this.tryToCall();
 				}
-				else if (true || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
+				else if (!(this.playerIsPlaying('gaer')) || this.hand.hasCardWithRank('A') || this.hand.hasCardWithRank('K') || this.hand.isPairedPocket()) {
 					action = this.checkCall();
 				}
 				else {
